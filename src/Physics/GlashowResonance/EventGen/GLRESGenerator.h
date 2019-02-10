@@ -1,21 +1,3 @@
-//____________________________________________________________________________
-/*!
-
-\class    genie::GLRESGenerator
-
-\brief    Glashow resonance event generator
-
-\author   Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
-          University of Liverpool & STFC Rutherford Appleton Lab
-
-\created  Feb 15, 2008
-
-\cpright  Copyright (c) 2003-2018, The GENIE Collaboration
-          For the full text of the license visit http://copyright.genie-mc.org
-          or see $GENIE/LICENSE
-*/
-//____________________________________________________________________________
-
 #ifndef _GLASHOW_RESONANCE_GENERATOR_H_
 #define _GLASHOW_RESONANCE_GENERATOR_H_
 
@@ -33,15 +15,18 @@ public :
  ~GLRESGenerator();
 
   // implement the EventRecordVisitorI interface
-  void ProcessEventRecord (GHepRecord * event) const;
+  void Initialize         (void)               const;
+  void ProcessEventRecord (GHepRecord * evrec) const;
 
   // overload the Algorithm::Configure() methods to load private data
   // members from configuration options
   void Configure(const Registry & config);
+
   void Configure(string config);
 
 private:
 
+  void LongBoost                (long double bx, long double by, long double bz, long double &px, long double &py, long double &pz, long double &E) const;
   void LoadConfig(void);
 
   mutable TPythia6 * fPythia;   ///< PYTHIA6 wrapper class

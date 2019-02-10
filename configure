@@ -49,6 +49,8 @@ if(($match = grep(/--help/i, @ARGV)) > 0) {
   print "    libxml2-lib       Path to libxml2 library      always needed                       (if unset: tries to auto-detect it) \n";
   print "    log4cpp-inc       Path to log4cpp includes     always needed                       (if unset: tries to auto-detect it) \n";
   print "    log4cpp-lib       Path to log4cpp library      always needed                       (if unset: tries to auto-detect it) \n\n";
+  print "    qcdnum-inc        Path to QCDNUM17 includes    always needed                       (if unset: tries to auto-detect it) \n\n";
+  print "    qcdnum-lib        Path to QCDNUM17 library     always needed                       (if unset: tries to auto-detect it) \n\n";
   print "If the printout was too long then pipe it through a pager, eg: \n";
   print "./configure --help | more \n";
   exit 0;
@@ -476,6 +478,50 @@ if(! -d $gopt_with_log4cpp_lib) {
   exit 1;
 }
 
+#
+# --with-qcdnum-inc=
+#
+if($options=~m/--with-qcdnum-inc=(\S*)/i) {
+  $gopt_with_qcdnum_inc = $1;
+}
+if(! -d $gopt_with_qcdnum_inc && $auto_detect)  {
+  print "\n*** Warning *** You didn't specify the qcdnum include path \n";
+  print "Auto-detecting...\n";
+  $matched = auto_detect("OstreamAppender.hh");
+  if( $matched=~m/(\S*)\/qcdnum\/OstreamAppender.hh/i ) {
+     $gopt_with_qcdnum_inc = $1;
+  }
+  print "Setting --with-qcdnum-inc=$gopt_with_qcdnum_inc\n";
+}
+if(! -d $gopt_with_qcdnum_inc) {
+  print "*** Error *** You need to specify the qcdnum include path using --with-qcdnum-inc=/some/path/\n\n";
+  exit 1;
+}
+
+#
+# --with-qcdnum-lib=
+#
+if($options=~m/--with-qcdnum-lib=(\S*)/i) {
+  $gopt_with_qcdnum_lib = $1;
+}
+if(! -d $gopt_with_qcdnum_lib && $auto_detect)  {
+  print "\n*** Warning *** You didn't specify the qcdnum library path \n";
+  print "Auto-detecting...\n";
+  $matched = auto_detect("libqcdnum.*");
+  if( $matched=~m/(\S*)\/libqcdnum\S*/i ) {
+     $gopt_with_qcdnum_lib = $1;
+  }
+  print "Setting --with-qcdnum-lib=$gopt_with_qcdnum_lib\n";
+}
+if(! -d $gopt_with_qcdnum_lib) {
+  print "*** Error *** You need to specify the qcdnum library path using --with-qcdnum-lib=/some/path/\n\n";
+  exit 1;
+}
+
+
+
+
+
 # Save config options
 #
 print MKCONF "GOPT_ENABLE_LHAPDF5=$gopt_enable_lhapdf5\n";
@@ -508,6 +554,8 @@ print MKCONF "GOPT_WITH_LIBXML2_INC=$gopt_with_libxml2_inc\n";
 print MKCONF "GOPT_WITH_LIBXML2_LIB=$gopt_with_libxml2_lib\n";
 print MKCONF "GOPT_WITH_LOG4CPP_INC=$gopt_with_log4cpp_inc\n";
 print MKCONF "GOPT_WITH_LOG4CPP_LIB=$gopt_with_log4cpp_lib\n";
+print MKCONF "GOPT_WITH_QCDNUM_INC=$gopt_with_qcdnum_inc\n";
+print MKCONF "GOPT_WITH_QCDNUM_LIB=$gopt_with_qcdnum_lib\n";
 
 close(MKCONF);
 

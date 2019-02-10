@@ -66,7 +66,9 @@ public :
   void Configure                   (bool calc_prob_scales = true);
 
   // generate single neutrino event for input flux & geometry
-  EventRecord * GenerateEvent (void);
+  void          InitEventGeneration             (void);
+  EventRecord * GenerateEvent                   (void);
+  EventRecord * GenerateEvent1Try               (void);
 
   // info needed for computing the generated sample normalization
   double   GlobProbScale  (void) const { return fGlobPmax;                  }
@@ -83,7 +85,6 @@ private:
  
   // private methods:
   void          InitJob                         (void);
-  void          InitEventGeneration             (void);
   void          GetParticleLists                (void);
   void          GetMaxPathLengthList            (void);
   void          GetMaxFluxEnergy                (void);
@@ -91,7 +92,6 @@ private:
   void          BootstrapXSecSplines            (void);
   void          BootstrapXSecSplineSummation    (void);
   void          ComputeProbScales               (void);
-  EventRecord * GenerateEvent1Try               (void);
   bool          GenerateFluxNeutrino            (void);
   bool          ComputePathLengths              (void);
   double	ComputeInteractionProbabilities (bool use_max_path_length);

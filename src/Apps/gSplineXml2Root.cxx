@@ -99,6 +99,7 @@
 #include "Framework/ParticleData/BaryonResUtils.h"
 #include "Framework/Conventions/XmlParserStatus.h"
 #include "Framework/Conventions/Units.h"
+#include "Framework/Conventions/Controls.h"
 #include "Framework/EventGen/InteractionList.h"
 #include "Framework/EventGen/GEVGDriver.h"
 #include "Framework/Interaction/Interaction.h"
@@ -145,10 +146,11 @@ bool   gWriteOutPlots;   // write out a postscript file with plots
 //Globals & constants
 double gEmin;
 double gEmax;
+bool gInlogE;
 int    kNP       = 300;
-int    kNSplineP = 1000;
+int    kNSplineP = 200;
 const int    kPsType   = 111;  // ps type: portrait
-const double kEmin     = 0.01; // minimum energy in plots (GeV)
+const double kEmin     = 100; // minimum energy in plots (GeV)
 
 //____________________________________________________________________________
 int main(int argc, char ** argv)
@@ -204,8 +206,8 @@ GEVGDriver GetEventGenDriver(void)
   GEVGDriver evg_driver;
   evg_driver.SetEventGeneratorList(RunOpt::Instance()->EventGeneratorList());
   evg_driver.Configure(init_state);
-  evg_driver.CreateSplines();
-  evg_driver.CreateXSecSumSpline (100, gEmin, gEmax);
+  evg_driver.CreateSplines(kNSplineP, gEmax-1, true); //to avoid problems on edges
+  evg_driver.CreateXSecSumSpline (kNSplineP, gEmin + controls::kASmallNum, gEmax-2); //to avoid problems on edges
 
   return evg_driver;
 }
@@ -568,9 +570,11 @@ void SaveGraphsToRootFile(void)
   topdir = froot->mkdir(dptr.str().c_str(),dtitle.str().c_str());
   topdir->cd();
 
-  double   de = (gEmax-gEmin)/(kNSplineP-1);
+  double   de = (gInlogE) ? (TMath::Log(gEmax)-TMath::Log(gEmin))/(kNSplineP-1) : (gEmax-gEmin)/(kNSplineP-1);
   double * e  = new double[kNSplineP];
-  for(int i=0; i<kNSplineP; i++) {  e[i]  = gEmin + i*de; }
+  for(int i=0; i<kNSplineP; i++) {  e[i]  = (gInlogE) ? TMath::Exp(TMath::Log(gEmin) + i*de) : gEmin + i*de; }
+  e[0] += controls::kASmallNum; //problems in edges
+  e[kNSplineP-1] -= 2; //problems in edges
 
   double * xs = new double[kNSplineP];
 
@@ -598,6 +602,8 @@ void SaveGraphsToRootFile(void)
     else if (proc.IsInverseMuDecay()   ) { title << "imd";   }
     else if (proc.IsIMDAnnihilation()  ) { title << "imdanh";}
     else if (proc.IsNuElectronElastic()) { title << "ve";    }
+    else if (proc.IsHEDIS()            ) { title << "hedis"; }
+    else if (proc.IsGlashowResonance() ) { title << "glres"; }
     else                                 { continue;         }
 
     if      (proc.IsWeakCC())  { title << "_cc";      }
@@ -631,10 +637,12 @@ void SaveGraphsToRootFile(void)
         else if ( pdg::IsDQuark(qrkpdg)     ) { title << "_d";    }
         else if ( pdg::IsSQuark(qrkpdg)     ) { title << "_s";    }
         else if ( pdg::IsCQuark(qrkpdg)     ) { title << "_c";    }
+        else if ( pdg::IsBQuark(qrkpdg)     ) { title << "_b";    }
         else if ( pdg::IsAntiUQuark(qrkpdg) ) { title << "_ubar"; }
         else if ( pdg::IsAntiDQuark(qrkpdg) ) { title << "_dbar"; }
         else if ( pdg::IsAntiSQuark(qrkpdg) ) { title << "_sbar"; }
         else if ( pdg::IsAntiCQuark(qrkpdg) ) { title << "_cbar"; }
+        else if ( pdg::IsAntiBQuark(qrkpdg) ) { title << "_bbar"; }
 
         if(insea) { title << "sea"; }
         else      { title << "val"; }
@@ -658,9 +666,33 @@ void SaveGraphsToRootFile(void)
         if(!xcls.IsInclusiveCharm()) { title << xcls.CharmHadronPdg(); }
     }
 
+    if(xcls.IsFinalQuarkEvent()) {
+        int  qrkpdg = xcls.FinalQuarkPdg();
+        if      ( pdg::IsUQuark(qrkpdg)     ) { title << "_u";    }
+        else if ( pdg::IsDQuark(qrkpdg)     ) { title << "_d";    }
+        else if ( pdg::IsSQuark(qrkpdg)     ) { title << "_s";    }
+        else if ( pdg::IsCQuark(qrkpdg)     ) { title << "_c";    }
+        else if ( pdg::IsBQuark(qrkpdg)     ) { title << "_b";    }
+        else if ( pdg::IsTQuark(qrkpdg)     ) { title << "_t";    }
+        else if ( pdg::IsAntiUQuark(qrkpdg) ) { title << "_ubar"; }
+        else if ( pdg::IsAntiDQuark(qrkpdg) ) { title << "_dbar"; }
+        else if ( pdg::IsAntiSQuark(qrkpdg) ) { title << "_sbar"; }
+        else if ( pdg::IsAntiCQuark(qrkpdg) ) { title << "_cbar"; }
+        else if ( pdg::IsAntiBQuark(qrkpdg) ) { title << "_bbar"; }
+        else if ( pdg::IsAntiTQuark(qrkpdg) ) { title << "_tbar"; }
+    }
+    if(xcls.IsFinalLeptonEvent()) {
+        int  leppdg = xcls.FinalLeptonPdg();
+        if      ( pdg::IsMuon(leppdg)     ) { title << "_mu";     }
+        else if ( pdg::IsElectron(leppdg) ) { title << "_e";      }
+        else if ( pdg::IsTau(leppdg)      ) { title << "_tau";    }
+        else if ( pdg::IsPion(leppdg)     ) { title << "_had";    }
+    }
+
     const Spline * spl = evg_driver.XSecSpline(interaction);
     for(int i=0; i<kNSplineP; i++) {
       xs[i] = spl->Evaluate(e[i]) * (1E+38/units::cm2);
+      LOG("gspl2root", pDEBUG) << i << " -> E = " << e[i] << " // xsec*1e38[cm2] = " << xs[i];
     }
 
     TGraph * gr = new TGraph(kNSplineP, e, xs);
@@ -903,6 +935,66 @@ void SaveGraphsToRootFile(void)
     topdir->Add(gr_mecnc);
 
     //
+    // add-up all hedis channels
+    //
+
+    double * xshedisccp = new double[kNSplineP];
+    double * xshedisccn = new double[kNSplineP];
+    double * xshedisncp = new double[kNSplineP];
+    double * xshedisncn = new double[kNSplineP];
+    for(int i=0; i<kNSplineP; i++) {
+       xshedisccp[i] = 0;
+       xshedisccn[i] = 0;
+       xshedisncp[i] = 0;
+       xshedisncn[i] = 0;
+    }
+    for(ilistiter = ilist->begin(); ilistiter != ilist->end(); ++ilistiter) {    
+       const Interaction * interaction = *ilistiter;
+       const ProcessInfo &  proc = interaction->ProcInfo();
+       const InitialState & init = interaction->InitState();
+       const Target &       tgt  = init.Tgt();
+
+       const Spline * spl = evg_driver.XSecSpline(interaction);
+ 
+       if (proc.IsHEDIS() && proc.IsWeakCC() && pdg::IsProton(tgt.HitNucPdg())) {
+         for(int i=0; i<kNSplineP; i++) { 
+             xshedisccp[i] += (spl->Evaluate(e[i]) * (1E+38/units::cm2)); 
+         }
+       }
+       if (proc.IsHEDIS() && proc.IsWeakCC() && pdg::IsNeutron(tgt.HitNucPdg())) {
+         for(int i=0; i<kNSplineP; i++) { 
+             xshedisccn[i] += (spl->Evaluate(e[i]) * (1E+38/units::cm2)); 
+         }
+       }
+       if (proc.IsHEDIS() && proc.IsWeakNC() && pdg::IsProton(tgt.HitNucPdg())) {
+         for(int i=0; i<kNSplineP; i++) { 
+             xshedisncp[i] += (spl->Evaluate(e[i]) * (1E+38/units::cm2)); 
+         }
+       }
+       if (proc.IsHEDIS() && proc.IsWeakNC() && pdg::IsNeutron(tgt.HitNucPdg())) {
+         for(int i=0; i<kNSplineP; i++) { 
+             xshedisncn[i] += (spl->Evaluate(e[i]) * (1E+38/units::cm2)); 
+         }
+       }
+    }
+    TGraph * gr_hedisccp = new TGraph(kNSplineP, e, xshedisccp);
+    gr_hedisccp->SetName("hedis_cc_p");
+    gr_hedisccp->SetTitle("GENIE cross section graph");
+    topdir->Add(gr_hedisccp);
+    TGraph * gr_hedisccn = new TGraph(kNSplineP, e, xshedisccn);
+    gr_hedisccn->SetName("hedis_cc_n");
+    gr_hedisccn->SetTitle("GENIE cross section graph");
+    topdir->Add(gr_hedisccn);
+    TGraph * gr_hedisncp = new TGraph(kNSplineP, e, xshedisncp);
+    gr_hedisncp->SetName("hedis_nc_p");
+    gr_hedisncp->SetTitle("GENIE cross section graph");
+    topdir->Add(gr_hedisncp);
+    TGraph * gr_hedisncn = new TGraph(kNSplineP, e, xshedisncn);
+    gr_hedisncn->SetName("hedis_nc_n");
+    gr_hedisncn->SetTitle("GENIE cross section graph");
+    topdir->Add(gr_hedisncn);
+
+    //
     // total cross sections
     //
     double * xstotcc  = new double[kNSplineP];
@@ -1000,6 +1092,10 @@ void SaveGraphsToRootFile(void)
     delete [] xsdisccn;
     delete [] xsdisncp;
     delete [] xsdisncn;
+    delete [] xshedisccp;
+    delete [] xshedisccn;
+    delete [] xshedisncp;
+    delete [] xshedisncn;
     delete [] xstotcc;
     delete [] xstotccp;
     delete [] xstotccn;
@@ -1319,6 +1415,7 @@ void GetCommandLineArgs(int argc, char ** argv)
   // use same abscissa points as splines
   //not yet//gKeepSplineKnots = parser.OptionExists('k');
 
+  gInlogE = parser.OptionExists('l');
 
   gEmin  = kEmin;
   gEmax  = gOptNuEnergy;
@@ -1330,6 +1427,7 @@ void GetCommandLineArgs(int argc, char ** argv)
   LOG("gspl2root", pINFO) << "  Probe PDG code  = " << gOptProbePdgCode;
   LOG("gspl2root", pINFO) << "  Target PDG code = " << gOptTgtPdgCode;
   LOG("gspl2root", pINFO) << "  Max neutrino E  = " << gOptNuEnergy;
+  LOG("gspl2root", pINFO) << "  In logE         = " << gInlogE;
   //not yet//LOG("gspl2root", pINFO) << "  Keep spline knots  = " << (gKeepSplineKnots?"true":"false");
 }
 //____________________________________________________________________________

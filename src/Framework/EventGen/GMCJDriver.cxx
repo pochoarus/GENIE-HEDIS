@@ -732,13 +732,12 @@ void GMCJDriver::ComputeProbScales(void)
     fPmax.clear();
   }
 
-  // for maximum interaction probability vs E /for given geometry/ I will
-  // be using 300 bins up to the maximum energy for the input flux
-  // double de   = fEmax/300.;//djk june 5, 2013
-  double de   = fEmax/300.;//djk june 5, 2013
-  double emin = 0.0;
-  double emax = fEmax + de;
-  int n = 1 + (int) ((emax-emin)/de);
+  int NENE = 200;
+  double emin = 1e2;
+  double dE = (TMath::Log10(fEmax) - TMath::Log10(emin)) /(NENE-1);
+
+  double Ebins[NENE];
+  for(int i=0; i<NENE; i++) Ebins[i] = TMath::Power(10., TMath::Log10(emin) + i * dE);
 
   PDGCodeList::const_iterator nuiter;
   PDGCodeList::const_iterator tgtiter;
@@ -747,7 +746,7 @@ void GMCJDriver::ComputeProbScales(void)
   for(nuiter = fNuList.begin(); nuiter != fNuList.end(); ++nuiter) {
     int neutrino_pdgc = *nuiter;
     TH1D * pmax_hst = new TH1D("pmax_hst",
-             "max interaction probability vs E | geom",n,emin,emax);
+             "max interaction probability vs E | geom",NENE-1,Ebins);
     pmax_hst->SetDirectory(0);
 
     // loop over energy bins
@@ -796,7 +795,7 @@ void GMCJDriver::ComputeProbScales(void)
            << "Pmax[" << init_state.AsString() << ", Ev from " << EvLow << "-" << EvHigh << "] = " << pmax;
        } // targets
 
-       pmax_hst->SetBinContent(ie, 1.2 * pmax_hst->GetBinContent(ie));
+       pmax_hst->SetBinContent(ie, 1. * pmax_hst->GetBinContent(ie));
 
        LOG("GMCJDriver", pINFO)
 	 << "Pmax[nu=" << neutrino_pdgc << ", Ev from " << EvLow << "-" << EvHigh << "] = "
