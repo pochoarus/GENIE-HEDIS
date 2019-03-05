@@ -12,16 +12,6 @@ Configuration for the HEDIS d^xsec / dy dx xsec algorithm
      <param type="string" name="LHAPDF-member">           HERAPDF15NLO_EIG </param>
      <param type="int"    name="NX">                                   400 </param>
      <param type="int"    name="NQ2">                                  400 </param>
-     <param type="double" name="CKM-Vud">                          0.97434 </param>
-     <param type="double" name="CKM-Vus">                          0.22506 </param>
-     <param type="double" name="CKM-Vub">                          0.00357 </param>
-     <param type="double" name="CKM-Vcd">                          0.22492 </param>
-     <param type="double" name="CKM-Vcs">                          0.97351 </param>
-     <param type="double" name="CKM-Vcb">                          0.04110 </param>
-     <param type="double" name="CKM-Vtd">                          0.00875 </param>
-     <param type="double" name="CKM-Vts">                          0.04030 </param>
-     <param type="double" name="CKM-Vtb">                          0.99915 </param>
-
   </param_set>
 
 </alg_conf>
