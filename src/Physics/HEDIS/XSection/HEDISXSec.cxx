@@ -100,10 +100,6 @@ double HEDISXSec::Integrate(
   double xsec = 0.;
   double d2xsec_max = 0.;
 
-  string diffxsecfilename = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/diffxsec/" + filename;
-  std::ofstream diffxsec_stream(diffxsecfilename.c_str(),std::fstream::app);
-  diffxsec_stream << Ev << "  ";
-
   Interaction * interaction = new Interaction(*in);
   for ( const auto& y : fVy ) {
 
@@ -125,14 +121,8 @@ double HEDISXSec::Integrate(
 
     }
 
-    dxsecdy *= fdlogx * TMath::Log(10.);
-    diffxsec_stream << dxsecdy << "  ";
-
   }
   delete interaction;
-
-  diffxsec_stream << std::endl;
-  diffxsec_stream.close();
 
   d2xsec_max *= TMath::Log(10.) * TMath::Log(10.);
   xsec       *= TMath::Log(10.) * TMath::Log(10.) * fdlogx * fdlogy;
