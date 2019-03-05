@@ -87,11 +87,10 @@
   <priority msgstream="FragmRecUtils">         WARN </priority>
   <priority msgstream="GEVGDriver">            WARN </priority>
   <priority msgstream="GMCJDriver">            WARN </priority>
-  <priority msgstream="GTRJDriver">            DEBUG </priority>
   <priority msgstream="GEVGPool">              WARN   </priority>
   <priority msgstream="GMCJob">                WARN   </priority>
   <priority msgstream="GMCJMonitor">           WARN   </priority>
-  <priority msgstream="GROOTGeom">             DEBUG </priority>
+  <priority msgstream="GROOTGeom">             WARN </priority>
   <priority msgstream="GHEP">                  WARN   </priority>
   <priority msgstream="GHepParticle">          WARN   </priority>
   <priority msgstream="GuiUtils">              WARN   </priority>
