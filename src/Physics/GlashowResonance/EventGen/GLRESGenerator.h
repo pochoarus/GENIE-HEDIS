@@ -26,7 +26,6 @@ public :
 
 private:
 
-  void LongBoost                (long double bx, long double by, long double bz, long double &px, long double &py, long double &pz, long double &E) const;
   void LoadConfig(void);
 
   mutable TPythia6 * fPythia;   ///< PYTHIA6 wrapper class

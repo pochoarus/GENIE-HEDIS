@@ -95,7 +95,7 @@ double GLRESPXSec::XSec(
   }
 
   
-  LOG("GLRES", pINFO) << "dxsec/dy (E= " << E << ", y= " << y << ") = " << xsec;
+  LOG("GLRESXSec", pINFO) << "dxsec/dy (E= " << E << ", y= " << y << ") = " << xsec;
 
   //----- The algorithm computes dxsec/dy
   //      Check whether variable tranformation is needed
