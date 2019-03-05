@@ -159,9 +159,6 @@ void HEDISPXSec::LoadConfig(void)
 
   GetParamDef("Is-NLO", fNLO, false ) ;
 
-
-  GetParamDef("Is-NLO", fNLO, false ) ;
-
   GetParamDef("CKM-Vud", fCKM[0], 1. );
   GetParamDef("CKM-Vus", fCKM[1], 1. );
   GetParamDef("CKM-Vub", fCKM[2], 1. );
