@@ -45,8 +45,6 @@ double HEDISPXSec::XSec(
   double x     = kinematics.x();
   double Q2    = kinematics.Q2();
 
-  LOG("HEDISPXSec", pDEBUG) << "ValidKinematicsPDF  ";
-  
   if( !formfactors->ValidKinematicsPDF(x,Q2) ) return 0.;  
 
   const InitialState & init_state = interaction -> InitState();

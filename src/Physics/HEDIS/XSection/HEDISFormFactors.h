@@ -84,6 +84,8 @@ namespace genie {
       void CreateNLONuclFormFactorFile ( HEDISNuclChannel_t ch, string filename );
       BLI2DNonUnifGrid * ReadFormFactorFile ( string filename, HEDISFormFactorType_t fftype );
 
+      string fFormFactorsDir;
+
       vector<double> ff_logx_array;
       vector<double> ff_logq2_array;
 

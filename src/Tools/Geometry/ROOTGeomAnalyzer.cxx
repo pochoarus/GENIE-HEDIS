@@ -737,7 +737,7 @@ void ROOTGeomAnalyzer::Initialize(void)
   this -> SetScannerNRays      (200);
   this -> SetScannerNParticles (10000);
   this -> SetScannerFlux       (0);
-  this -> SetMaxPlSafetyFactor (1.1);
+  this -> SetMaxPlSafetyFactor (1.05);
   this -> SetLengthUnits       (genie::units::meter);
   this -> SetDensityUnits      (genie::units::kilogram/genie::units::meter3);
   this -> SetWeightWithDensity (true);

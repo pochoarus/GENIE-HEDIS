@@ -43,10 +43,6 @@ HEDISKinematicsGenerator::~HEDISKinematicsGenerator()
 //___________________________________________________________________________
 void HEDISKinematicsGenerator::ProcessEventRecord(GHepRecord * evrec) const
 {
-  if(fGenerateUniformly) {
-    LOG("HEDISKinematics", pNOTICE)
-          << "Generating kinematics uniformly over the allowed phase space";
-  }
 
   //-- Get the random number generators
   RandomGen * rnd = RandomGen::Instance();

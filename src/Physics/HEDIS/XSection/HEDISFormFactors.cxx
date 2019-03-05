@@ -57,9 +57,12 @@ HEDISFormFactors::HEDISFormFactors(bool NLO, string LHAPDFmember, int NX, int NQ
   fVcd2 = CKM[3]; fVcs2 = CKM[4]; fVcb2 = CKM[5];
   fVtd2 = CKM[6]; fVts2 = CKM[7]; fVtb2 = CKM[8];
 
+  fFormFactorsDir = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/formfactors/" + LHAPDFmember + "/";
+  if ( gSystem->mkdir(fFormFactorsDir.c_str())==0 ) LOG("HEDISFormFactors", pINFO) << "Creating directory: " << fFormFactorsDir;
+
   LOG("HEDISFormFactors", pINFO) << "Initialising LHAPDF5...";
 
-  pdf = LHAPDF::mkPDF(LHAPDFmember, 0);;
+  pdf = LHAPDF::mkPDF(LHAPDFmember, 0);
 
   xPDFmin  = pdf->xMin();
   Q2PDFmin = pdf->q2Min();
@@ -175,7 +178,7 @@ void HEDISFormFactors::InitQCDNUM(void) {
 void HEDISFormFactors::LoadFormfactors( HEDISChannel_t ch )
 {
 
-  string formfactorFile = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/formfactors/FFLO_" + HEDISChannel::AsString(ch) + ".dat";
+  string formfactorFile = fFormFactorsDir + "FFLO_" + HEDISChannel::AsString(ch) + ".dat";
 
   // make sure data files are available
   LOG("HEDISFormFactors", pINFO) << "Checking if file " << formfactorFile << " exists...";        
@@ -191,12 +194,12 @@ void HEDISFormFactors::LoadFormfactors( HEDISChannel_t ch )
 void HEDISFormFactors::LoadNuclFormfactors( HEDISNuclChannel_t ch )
 {
 
-  string NLOformfactorFile = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/formfactors/NuclFFNLO_" + HEDISChannel::AsString(ch) + ".dat";
+  string NLOformfactorFile = fFormFactorsDir + "NuclFFNLO_" + HEDISChannel::AsString(ch) + ".dat";
   LOG("HEDISFormFactors", pINFO) << "Checking if file " << NLOformfactorFile << " exists...";         
   if ( gSystem->AccessPathName( NLOformfactorFile.c_str()) ) CreateNLONuclFormFactorFile( ch, NLOformfactorFile );
 
 
-  string LOformfactorFile = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/formfactors/NuclFFLO_" + HEDISChannel::AsString(ch) + ".dat";
+  string LOformfactorFile = fFormFactorsDir + "NuclFFLO_" + HEDISChannel::AsString(ch) + ".dat";
   LOG("HEDISFormFactors", pINFO) << "Checking if file " << LOformfactorFile << " exists...";          
   if ( gSystem->AccessPathName( LOformfactorFile.c_str()) ) CreateLONuclFormFactorFile( ch, LOformfactorFile );
 

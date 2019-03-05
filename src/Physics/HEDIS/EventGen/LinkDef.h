@@ -6,6 +6,7 @@
 
 #pragma link C++ namespace genie;
 
+#pragma link C++ class genie::LongLorentzVector;
 #pragma link C++ class genie::HEDISKinematicsGenerator;
 #pragma link C++ class genie::HEDISGenerator;
 #pragma link C++ class genie::HEDISInteractionListGenerator;

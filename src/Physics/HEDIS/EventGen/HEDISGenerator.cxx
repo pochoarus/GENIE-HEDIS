@@ -75,9 +75,6 @@ void HEDISGenerator::ProcessEventRecord(GHepRecord * evrec) const
   //-- Add the primary lepton
   this->AddPrimaryLepton(evrec);
 
-  //-- Add an entry for the DIS Pre-Fragm. Hadronic State
-  this->AddFinalHadronicSyst(evrec);
-
   //-- Add the fragmentation products
   this->AddFragmentationProducts(evrec);
 
@@ -88,49 +85,121 @@ void HEDISGenerator::AddPrimaryLepton(GHepRecord * evrec) const
 
   Interaction * interaction = evrec->Summary();
 
-  TLorentzVector * p4v = evrec->Probe()->GetP4(); // v 4p @ LAB
+  // Neutrino 4p
+  LongLorentzVector p4v( evrec->Probe()->P4() );
+  LOG("HEDISGenerator", pINFO) << "NEUTRINO @ LAB' =>  E = " << p4v.E() << " //  m = " << p4v.M() << " // p = " << p4v.P();
+  LOG("HEDISGenerator", pINFO) << "                  dir = " << p4v.Dx() << " , "  << p4v.Dy() << " , "  << p4v.Dz();
 
   // Look-up selected kinematics & other needed kinematical params
-  double Q2  = interaction->Kine().Q2(true);
-  double y   = interaction->Kine().y(true);
-  double Ev  = p4v->E(); 
-  double ml  = interaction->FSPrimLepton()->Mass();
-  double ml2 = TMath::Power(ml,2);
+  long double Q2  = interaction->Kine().Q2(true);
+  long double y   = interaction->Kine().y(true);
+  long double Ev  = p4v.E(); 
+  long double ml  = interaction->FSPrimLepton()->Mass();
+  long double ml2 = powl(ml,2);
 
   // Compute the final state primary lepton energy and momentum components
   // along and perpendicular the neutrino direction 
-  double El  = (1-y)*Ev;
-  double plp = El - 0.5*(Q2+ml2)/Ev;                          // p(//)
-  double plt = TMath::Sqrt(fmax(0.,El*El-plp*plp-ml2)); // p(-|)
+  long double El  = (1-y)*Ev;
+  long double plp = El - 0.5*(Q2+ml2)/Ev;                          // p(//)
+  long double plt = sqrtl(fmaxl(0.,El*El-plp*plp-ml2)); // p(-|)
   // Randomize transverse components
   RandomGen * rnd = RandomGen::Instance();
-  double phi  = 2 * M_PIl * rnd->RndLep().Rndm();
-  double pltx = plt * TMath::Cos(phi);
-  double plty = plt * TMath::Sin(phi);
+  long double phi  = 2 * M_PIl * rnd->RndLep().Rndm();
+  long double pltx = plt * cosl(phi);
+  long double plty = plt * sinl(phi);
 
-  //rotate from LAB (where neutrino is [0,0,E,E]) to LAB' (where neutrino is [px,py,pz,E])
-  TVector3 unit_nudir = p4v->Vect().Unit(); 
-  TVector3 p3l(pltx,plty,plp);
-  p3l.RotateUz(unit_nudir);
-
-  TLorentzVector p4l(p3l,El);
-  LOG("HEDISGenerator", pINFO) << "LEPTON @ LAB' =>   E = " << p4l.E() << " // p = " << p4l.Px() << " , "  << p4l.Py() << " , "  << p4l.Pz() << " // p = " << p4l.P();
-  LOG("HEDISGenerator", pINFO) << "                         m = " << p4l.M();
+  // Lepton 4-momentum in the LAB frame
+  LongLorentzVector p4llong( pltx, plty, plp, El );
+  p4llong.Rotate(p4v);
+  LOG("HEDISGenerator", pINFO) << "LEPTON     @ LAB' =>  E = " << p4llong.E() << " //  m = " << p4llong.M() << " // p = " << p4llong.P();
+  LOG("HEDISGenerator", pINFO) << "                    dir = " << p4llong.Dx() << " , "  << p4llong.Dy() << " , "  << p4llong.Dz();
+ 
+  TLorentzVector p4l( (double)p4llong.Px(), (double)p4llong.Py(), (double)p4llong.Pz(), (double)p4llong.E() );
 
   // Decay tau
   int pdgl = interaction->FSPrimLepton()->PdgCode();
-  evrec->AddParticle(pdgl, kIStStableFinalState, evrec->ProbePosition(),-1,-1,-1, p4l, *(evrec->Probe()->X4()));
-  evrec->Summary()->KinePtr()->SetFSLeptonP4(p4l);
+  if ( pdg::IsTau(TMath::Abs(pdgl)) ) {
+
+    evrec->AddParticle(pdgl, kIStDecayedState, evrec->ProbePosition(),-1,-1,-1, p4l, *(evrec->Probe()->X4()));
+    evrec->Summary()->KinePtr()->SetFSLeptonP4(p4l);
+    int mom = evrec->FinalStatePrimaryLeptonPosition();
+
+    fPythia->Py1ent( -1, pdgl, p4l.E(), acos(p4l.Pz()/p4l.E()), atan(abs(p4l.Py()/p4l.Px())) ); //k(1,2) = 2
+    fPythia->Pyexec();
+
+    if (fPromptPythiaList) fPythia->Pylist(3);
+
+    fPythia->GetPrimaries();
+    TClonesArray * pythia_particles = (TClonesArray *) fPythia->ImportParticles("All");
+    int np = pythia_particles->GetEntries();
+    assert(np>0);
+
+    TMCParticle * particle = 0;
+    TIter piter(pythia_particles);
+    while( (particle = (TMCParticle *) piter.Next()) ) {
+      
+      if ( particle->GetParent()==0 ) continue; //we dont want to save tau, already saved
+
+      int pdgc = particle->GetKF();
+      int ks   = particle->GetKS();
+
+      double px = ( p4l.Px()>0 ) ? particle->GetPx() : -particle->GetPx();
+      double py = ( p4l.Py()>0 ) ? particle->GetPy() : -particle->GetPy();
+      TLorentzVector p4(px,py,particle->GetPz(),particle->GetEnergy());
+
+      // copy final state particles to the event record
+      GHepStatus_t ist = (ks==1) ? kIStStableFinalState : kIStDecayedState;
+
+      int im  = mom - 1 + particle->GetParent();
+      int ifc = (particle->GetFirstChild() <= 0) ? -1 : mom - 1 + particle->GetFirstChild();
+      int ilc = (particle->GetLastChild()  <= 0) ? -1 : mom - 1 + particle->GetLastChild();
+
+      double massPDG = PDGLibrary::Instance()->Find(pdgc)->Mass();
+      if ( ks==1 && p4.E() < massPDG ) {
+        LOG("HEDISGenerator", pWARN) << "Putting at rest one stable particle generated by PYTHIA because E < m";
+        LOG("HEDISGenerator", pWARN) << "PDG = " << pdgc << " // State = " << ks;
+        LOG("HEDISGenerator", pWARN) << "E = " << p4.E() << " // |p| = " << TMath::Sqrt(p4.P()); 
+        LOG("HEDISGenerator", pWARN) << "p = [ " << p4.Px() << " , "  << p4.Py() << " , "  << p4.Pz() << " ]";
+        LOG("HEDISGenerator", pWARN) << "m    = " << p4.M() << " // mpdg = " << massPDG;
+        p4.SetXYZT(0,0,0,massPDG);
+      }
+
+      double lightspeed = 299792458e3; //c in mm/s. Used for time in PYTHIA t[s]=t_pythia[mm]/c[mm/s]
+      double vx = evrec->Probe()->X4()->X() + particle->GetVx()*1e12; //pythia gives position in [mm] while genie uses [fm]
+      double vy = evrec->Probe()->X4()->Y() + particle->GetVy()*1e12;
+      double vz = evrec->Probe()->X4()->Z() + particle->GetVz()*1e12;
+      double vt = evrec->Probe()->X4()->T() + particle->GetTime()/lightspeed;
+      TLorentzVector pos( vx, vy, vz, vt );
+
+      LOG("HEDISGenerator", pDEBUG) << pdgc << "  " << ist << "  " << im << "  " << ifc;
+      evrec->AddParticle( pdgc, ist, im, -1, ifc, ilc, p4, pos );
+
+    }
+    delete particle;
+    pythia_particles->Clear("C");
+
+  }     
+  else {
+    evrec->AddParticle(pdgl, kIStStableFinalState, evrec->ProbePosition(),-1,-1,-1, p4l, *(evrec->Probe()->X4()));
+    evrec->Summary()->KinePtr()->SetFSLeptonP4(p4l);
+  }
 
 }
 //___________________________________________________________________________
 void HEDISGenerator::AddFragmentationProducts(GHepRecord * evrec) const
 {
 
-  //-- Compute the hadronic system invariant mass
-  TLorentzVector p4Had = this->Hadronic4pLAB(evrec);
-  double W = p4Had.M();
+  LongLorentzVector p4v( evrec->Probe()->P4()                   );
+  LongLorentzVector p4N( evrec->HitNucleon()->P4()              );
+  LongLorentzVector p4l( evrec->FinalStatePrimaryLepton()->P4() );
+  LongLorentzVector p4Hadlong( p4v.Px()+p4N.Px()-p4l.Px(), p4v.Py()+p4N.Py()-p4l.Py(), p4v.Pz()+p4N.Pz()-p4l.Pz(), p4v.E()+p4N.E()-p4l.E() );
 
+  LOG("HEDISGenerator", pDEBUG) << "v [LAB']: " << p4v.E() << " // " << p4v.M2() << " // [ " << p4v.Dx() << " , " << p4v.Dy() << " , " << p4v.Dz() << " ]";
+  LOG("HEDISGenerator", pDEBUG) << "N [LAB']: " << p4N.E() << " // " << p4N.M2() << " // [ " << p4N.Dx() << " , " << p4N.Dy() << " , " << p4N.Dz() << " ]";
+  LOG("HEDISGenerator", pDEBUG) << "l [LAB']: " << p4l.E() << " // " << p4l.M2() << " // [ " << p4l.Dx() << " , " << p4l.Dy() << " , " << p4l.Dz() << " ]";
+  LOG("HEDISGenerator", pDEBUG) << "H [LAB']: " << p4Hadlong.E() << " // " << p4Hadlong.M2() << " // [ " << p4Hadlong.Dx() << " , " << p4Hadlong.Dy() << " , " << p4Hadlong.Dz() << " ]";
+
+  double W = p4Hadlong.M();
   if( W < 2 ) {
     LOG("HEDISGenerator", pWARN) << "Low invariant mass, W = " << W << " GeV!!";
     evrec->EventFlags()->SetBitNumber(kHadroSysGenErr, true);
@@ -140,6 +209,11 @@ void HEDISGenerator::AddFragmentationProducts(GHepRecord * evrec) const
     throw exception;
     return;
   }
+
+  const TLorentzVector & vtx = *( evrec->Probe()->X4());
+  TLorentzVector p4Had( (double)p4Hadlong.Px(), (double)p4Hadlong.Py(), (double)p4Hadlong.Pz(), (double)p4Hadlong.E() );
+  evrec->AddParticle(kPdgHadronicSyst, kIStDISPreFragmHadronicState, evrec->HitNucleonPosition(),-1,-1,-1, p4Had, vtx);
+  evrec->Summary()->KinePtr()->SetHadSystP4(p4Had);
 
   //-- Run the hadronization model and get the fragmentation products:
   //   A collection of ROOT TMCParticles (equiv. to a LUJETS record)
@@ -166,40 +240,27 @@ void HEDISGenerator::AddFragmentationProducts(GHepRecord * evrec) const
   TMCParticle * p = 0;
   TIter particle_iter(plist);
 
-
-  const TLorentzVector & vtx = *(evrec->Probe()->X4());
-
-  // Vector defining rotation from LAB to LAB' (z:= \vec{phad})
-  TVector3 unitvq = p4Had.Vect().Unit();
-
-  // Boost velocity LAB' -> HCM
-  TVector3 beta(0,0,p4Had.P()/p4Had.Energy());
-
+  // Boost velocity HCM -> LAB
+  long double beta = p4Hadlong.P()/p4Hadlong.E();
 
   while( (p = (TMCParticle *) particle_iter.Next()) ) {
 
     int pdgc = p->GetKF();
     int ks   = p->GetKS();
 
-    // The fragmentation products are generated in the hadronic CM frame
-    // where the z>0 axis is the \vec{phad} direction. For each particle 
-    // returned by the hadronizer:
-    // - boost it back to LAB' frame {z:=\vec{phad}} / doesn't affect pT
-    // - rotate its 3-momentum from LAB' to LAB
+    LongLorentzVector p4long( p->GetPx(), p->GetPy(), p->GetPz(), p->GetEnergy()  );
+    p4long.Boost(beta);
+    p4long.Rotate(p4Hadlong);
 
-    TLorentzVector p4o(p->GetPx(), p->GetPy(), p->GetPz(), p->GetEnergy());
-    p4o.Boost(beta); 
-    TVector3 p3 = p4o.Vect();
-    p3.RotateUz(unitvq); 
-    TLorentzVector p4(p3,p4o.Energy());
+    TLorentzVector p4( (double)p4long.Px(), (double)p4long.Py(), (double)p4long.Pz(), (double)p4long.E() );
 
     double massPDG = PDGLibrary::Instance()->Find(pdgc)->Mass();
     if ( ks==1 && p4.E() < massPDG ) {
-      LOG("HEDISGenerator", pWARN) << "Putting at rest one stable particle generated by PYTHIA because E < m";
-      LOG("HEDISGenerator", pWARN) << "PDG = " << pdgc << " // State = " << ks;
-      LOG("HEDISGenerator", pWARN) << "E = " << p4.E() << " // |p| = " << TMath::Sqrt(p4.P()); 
-      LOG("HEDISGenerator", pWARN) << "p = [ " << p4.Px() << " , "  << p4.Py() << " , "  << p4.Pz() << " ]";
-      LOG("HEDISGenerator", pWARN) << "m    = " << p4.M() << " // mpdg = " << massPDG;
+      LOG("HEDISGenerator", pINFO) << "Putting at rest one stable particle generated by PYTHIA because E < m";
+      LOG("HEDISGenerator", pINFO) << "PDG = " << pdgc << " // State = " << ks;
+      LOG("HEDISGenerator", pINFO) << "E = " << p4.E() << " // |p| = " << p4.P(); 
+      LOG("HEDISGenerator", pINFO) << "p = [ " << p4.Px() << " , "  << p4.Py() << " , "  << p4.Pz() << " ]";
+      LOG("HEDISGenerator", pINFO) << "m    = " << p4.M() << " // mpdg = " << massPDG;
       p4.SetXYZT(0,0,0,massPDG);
     }
 
@@ -381,22 +442,22 @@ TClonesArray * HEDISGenerator::Hadronize(GHepRecord * evrec, double W) const
         fPythia->Py1ent( fPythia->GetN()+1, hadron, E_hadron, theta_hadron, phi + kPi );
         fPythia->SetMSTU( 10, 2 ); //find masses according to mass tables as usual.
 
-        if ( fPythia->GetP(fPythia->GetN()-1,3)<0 && fPythia->GetP(fPythia->GetN(),3)<0 ) break;
+        if ( fPythia->GetP(fPythia->GetN()-1,3)<0 && fPythia->GetP(fPythia->GetN(),3)<0 ) break; //quit the while from line 368
         
-        LOG("HEDISGenerator", pWARN) << "Not backward hadron or rema_quark";
-        LOG("HEDISGenerator", pWARN) << "hadron     = " << hadron     << " -> Pz = " << fPythia->GetP(fPythia->GetN(),3) ;
-        LOG("HEDISGenerator", pWARN) << "rema_quark = " << rema_quark << " -> Pz = " << fPythia->GetP(fPythia->GetN()-1,3) ;
+        LOG("HEDISGenerator", pINFO) << "Not backward hadron or rema_quark";
+        LOG("HEDISGenerator", pINFO) << "hadron     = " << hadron     << " -> Pz = " << fPythia->GetP(fPythia->GetN(),3) ;
+        LOG("HEDISGenerator", pINFO) << "rema_quark = " << rema_quark << " -> Pz = " << fPythia->GetP(fPythia->GetN()-1,3) ;
 
       }
       else {
-        LOG("HEDISGenerator", pWARN) << "Low WT value ... ";
-        LOG("HEDISGenerator", pWARN) << "WT = " << TMath::Sqrt(WT) << " // m_frag = " << m_frag << " // m_rema = " << m_rema;
+        LOG("HEDISGenerator", pINFO) << "Low WT value ... ";
+        LOG("HEDISGenerator", pINFO) << "WT = " << TMath::Sqrt(WT) << " // m_frag = " << m_frag << " // m_rema = " << m_rema;
       }
 
-      LOG("HEDISGenerator", pWARN) << "Hadronization paricles not suitable. Trying again... " << counter;
+      LOG("HEDISGenerator", pINFO) << "Hadronization paricles not suitable. Trying again... " << counter;
       counter++;
       if (counter==100) {
-        LOG("HEDISGenerator", pWARN) << "Hadronization particles failed after " << counter << " iterations";
+        LOG("HEDISGenerator", pWARN) << "Hadronization particles failed after " << counter << " iterations! Returning a null list";
         return 0;
       }
 
