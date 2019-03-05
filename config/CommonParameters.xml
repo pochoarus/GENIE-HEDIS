@@ -318,8 +318,8 @@ University of Liverpool
 	 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	 GENIE validity range
     -->
-    <param type="double" name="GVLD-Emin">           100.000  </param>
-    <param type="double" name="GVLD-Emax"> 1000000000000.000  </param>
+    <param type="double" name="GVLD-Emin">    0.010  </param>
+    <param type="double" name="GVLD-Emax"> 1000.000  </param>
 
   </param_set>
 
