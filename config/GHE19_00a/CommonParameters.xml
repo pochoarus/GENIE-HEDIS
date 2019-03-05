@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!--
+***************************************************************************************************
+This file defines parameters sets for parameters which are common between algorithms and therefore
+has to be the same for those parameters to be meaningful.
+This is file is read from the AlgConfigPool and the parameters set are expected to be used by the
+algorithms to configure these common parameters.
+
+Author:
+Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
+STFC, Rutherford Appleton Laboratory
+
+and
+Marco Roda <marco.roda \at liverpool.ac.uk>
+University of Liverpool
+***************************************************************************************************
+-->
+
+
+
+<common_param_list>
+
+  <param_set name="Tunable">
+
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  CKM matrix
+-->
+
+    <param type="double" name="CKM-Vud">                          0.97434 </param>
+    <param type="double" name="CKM-Vus">                          0.22506 </param>
+    <param type="double" name="CKM-Vub">                          0.00357 </param>
+    <param type="double" name="CKM-Vcd">                          0.22492 </param>
+    <param type="double" name="CKM-Vcs">                          0.97351 </param>
+    <param type="double" name="CKM-Vcb">                          0.04110 </param>
+    <param type="double" name="CKM-Vtd">                          0.00875 </param>
+    <param type="double" name="CKM-Vts">                          0.04030 </param>
+    <param type="double" name="CKM-Vtb">                          0.99915 </param>
+
+</param_set>
+
+  <param_set name="NUCL">
+
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  NUCL-Ro (in fm) is a scale parameter driving the effective nuclear sizes (Ro in R=Ro*A^1/3)                                                                          
+-->
+    <param type="double" name="NUCL-R0"> 1.4 </param>
+    <param type="double" name="NUCL-NR"> 3.0 </param>
+
+  </param_set>
+
+  <param_set name="Validation">
+
+<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  GENIE validity range only for HEDIS processes 
+-->
+    <param type="double" name="GVLD-Emin">          100.000  </param>
+    <param type="double" name="GVLD-Emax"> 1000000000000.000  </param>
+  
+  </param_set>
+
+</common_param_list>
