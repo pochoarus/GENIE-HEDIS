@@ -733,7 +733,7 @@ void GMCJDriver::ComputeProbScales(void)
   }
 
   int NENE = 200;
-  double emin = 1e2;
+  double emin = 0.;
   double dE = (TMath::Log10(fEmax) - TMath::Log10(emin)) /(NENE-1);
 
   double Ebins[NENE];
