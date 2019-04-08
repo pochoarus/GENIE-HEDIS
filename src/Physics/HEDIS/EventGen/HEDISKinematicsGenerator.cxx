@@ -77,10 +77,8 @@ void HEDISKinematicsGenerator::ProcessEventRecord(GHepRecord * evrec) const
   Range1D_t xl = kps.Limits(kKVx);
   Range1D_t yl = kps.Limits(kKVy);
 
-  double xPDFmin  = 1e-6;
-  double Q2PDFmin = 1.;
-  double xymin = Q2PDFmin/2/M/Ev;
-  if ( xPDFmin > xl.min ) xl.min = xPDFmin;
+  double xymin = fQ2min/2/M/Ev;
+  if ( fXmin > xl.min ) xl.min = fXmin;
   if ( xymin > xl.min ) xl.min = xymin;
   if ( xymin > yl.min ) yl.min = xymin;
 
@@ -204,12 +202,15 @@ double HEDISKinematicsGenerator::ComputeMaxXSec(
 void HEDISKinematicsGenerator::LoadMaxXsecFromAscii() const
 {
 
-  string data_dir = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/maxxsec/" + fMaxXsecFileName;
+  if ( gSystem->AccessPathName( fMaxXsecDirName.c_str()) ) {
+    LOG("HEDISFormFactors", pERROR) << "Max Xsec directory does not exist...";
+    LOG("HEDISFormFactors", pERROR) << fMaxXsecDirName;
+  }
 
   int absnupdg[3] = { 12, 14, 16 };
   for( int n=0; n<3; n++ ) {
     for( int ch=1; ch<kHEDIS_numofchannels; ch++ ) {      
-      string filename = data_dir + "/Flvr" + std::to_string(absnupdg[n]) + "_" + HEDISChannel::AsString((HEDISChannel_t)ch) + ".dat";      
+      string filename = fMaxXsecDirName + "/Flvr" + std::to_string(absnupdg[n]) + "_" + HEDISChannel::AsString((HEDISChannel_t)ch) + ".dat";      
       if ( !gSystem->AccessPathName(filename.c_str()) ) {
         LOG("HEDISKinematics", pINFO)<< "Loading splines from: " << filename;
         fspl_max[(HEDISChannel_t)ch].Spline[absnupdg[n]] = new Spline(filename,"","",false);
@@ -239,7 +240,8 @@ void HEDISKinematicsGenerator::LoadConfig(void)
 {
 
   //-- File name where the maximum differential cross section is stored
-  GetParamDef("MaxXSec-FileName", fMaxXsecFileName, string("") ) ;
+  GetParamDef("MaxXSec-DirName", fMaxXsecDirName, string("") ) ;
+  fMaxXsecDirName = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/maxxsec/" + fMaxXsecDirName;
 
   //-- Safety factor for the maximum differential cross section
   GetParamDef("MaxXSec-SafetyFactor", fSafetyFactor, 2. ) ;
@@ -247,5 +249,8 @@ void HEDISKinematicsGenerator::LoadConfig(void)
   //   section used in rejection method
   GetParamDef("MaxXSec-DiffTolerance", fMaxXSecDiffTolerance, 999999. ) ;
   assert(fMaxXSecDiffTolerance>=0);
+
+  GetParamDef("xGrid-Min",   fXmin, 1e-10 );
+  GetParamDef("Q2Grid-Min", fQ2min,   0.1 );
 
 }

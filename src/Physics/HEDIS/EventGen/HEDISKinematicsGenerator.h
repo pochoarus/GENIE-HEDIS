@@ -33,10 +33,13 @@ public :
 
 private:
 
-	string fMaxXsecFileName;
+	string fMaxXsecDirName;
 	
   mutable bool fMaxXsecIsAlreadyLoaded = false;
   mutable map<HEDISChannel_t, HEDISMaxXsecSpline> fspl_max;
+
+  double fXmin;
+  double fQ2min;
 
   double ComputeMaxXSec       (const Interaction * interaction) const;
   void   LoadMaxXsecFromAscii (void) const;

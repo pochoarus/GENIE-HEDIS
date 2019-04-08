@@ -11,6 +11,7 @@
 using std::map;
 using std::vector;
 using std::string;
+using std::to_string;
 
 namespace genie {
 
@@ -53,12 +54,7 @@ namespace genie {
 
       // ................................................................
 
-      static HEDISFormFactors * Instance(bool NLO, string LHAPDFmember, int NX, int NQ2, const double CKM[9]);
-
-      // method to return whether the kinematics are valid for the PDF
-      bool ValidKinematicsPDF (double x, double Q2) { return x>xPDFmin && Q2>Q2PDFmin && Q2<Q2PDFmax; }
-      double GetXPDFmin       (void)                { return xPDFmin; }
-      double GetQ2PDFmin      (void)                { return Q2PDFmin; }
+      static HEDISFormFactors * Instance(string LHAPDFmember, bool NLO, string Scheme, int QrkThrs, int NX, double xGRIDmin, int NQ2, double Q2GRIDmin, double Q2GRIDmax, const double CKM[9], double MZ, double MW, double Sin2ThW);
 
       FF_xQ2 EvalFFQrkLO   ( HEDISChannel_t ch, double x, double Q2 );
       FF_xQ2 EvalNuclFFLO  ( HEDISNuclChannel_t ch, double x, double Q2 ); 
@@ -68,7 +64,7 @@ namespace genie {
     private:
 
       // Ctors & dtor
-      HEDISFormFactors(bool NLO, string LHAPDFmember, int NX, int NQ2, const double CKM[9]);
+      HEDISFormFactors(string LHAPDFmember, bool NLO, string Scheme, int QrkThrs, int NX, double xGRIDmin, int NQ2, double Q2GRIDmin, double Q2GRIDmax, const double CKM[9], double MZ, double MW, double Sin2ThW);
       HEDISFormFactors(const HEDISFormFactors &);
      ~HEDISFormFactors();
 
@@ -76,7 +72,6 @@ namespace genie {
       static HEDISFormFactors * fgInstance;
 
       // Load available form factor tables.
-      void InitQCDNUM                  ( void );
       void LoadFormfactors             ( HEDISChannel_t     ch );
       void LoadNuclFormfactors         ( HEDISNuclChannel_t ch );
       void CreateFormFactorFile        ( HEDISChannel_t     ch, string filename );
@@ -84,20 +79,22 @@ namespace genie {
       void CreateNLONuclFormFactorFile ( HEDISNuclChannel_t ch, string filename );
       BLI2DNonUnifGrid * ReadFormFactorFile ( string filename, HEDISFormFactorType_t fftype );
 
-      string fFormFactorsDir;
+      double fQrkThrs;
+      double fVud2; double fVus2; double fVub2;
+      double fVcd2; double fVcs2; double fVcb2;
+      double fVtd2; double fVts2; double fVtb2;
+
+      string fLHAPDFmember;
+      map<int, double> mPDFQrk;
+
+      double xPDFmin; double Q2PDFmin; double Q2PDFmax;
 
       vector<double> ff_logx_array;
       vector<double> ff_logq2_array;
 
-      bool QCDNUMIsAlreadyInit = false;
+      string fFormFactorsDir;
 
-      double xPDFmin; double Q2PDFmin; double Q2PDFmax;
-      
-      map<int, double> mPDFQrk;
-
-      double fVud2; double fVus2; double fVub2;
-      double fVcd2; double fVcs2; double fVcb2;
-      double fVtd2; double fVts2; double fVtb2;
+      bool APFELIsAlreadyInit = false;
 
       // This map holds all known tensor tables (target PDG code is the key)
       map<HEDISChannel_t, HEDISFormFactorTable> fFormFactorsTables;

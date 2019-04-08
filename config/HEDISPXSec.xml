@@ -7,11 +7,8 @@ Configuration for the HEDIS d^xsec / dy dx xsec algorithm
 <alg_conf>
 
   <param_set name="Default"> 
+     <param type="string" name="CommonParam">                  CKM,WeakInt </param>
      <param type="alg"    name="XSec-Integrator"> genie::HEDISXSec/Default </param>
-     <param type="bool"   name="Is-NLO">                              true </param>
-     <param type="string" name="LHAPDF-member">           HERAPDF15NLO_EIG </param>
-     <param type="int"    name="NX">                                   400 </param>
-     <param type="int"    name="NQ2">                                  400 </param>
   </param_set>
 
 </alg_conf>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<common_param_list>
+
+  <param_set name="Tunable">
+    <param type="string" name="LHAPDF-member">                HERAPDF15NLO_EIG </param>
+    <param type="bool"   name="Is-NLO">                                   true </param>
+    <param type="string" name="Scheme">                                ZM-VFNS </param>
+    <param type="int"    name="Quark-Threshold">                             1 </param>
+    <param type="double" name="MassW">                                  80.398 </param>
+    <param type="double" name="MassZ">                                 91.1876 </param>
+    <param type="double" name="Rho">                                        0. </param>
+    <param type="int"    name="NGridX">                                    400 </param>
+    <param type="int"    name="NGridQ2">                                   400 </param>
+    <param type="double" name="XGrid-Min">                                1e-6 </param>
+    <param type="double" name="Q2Grid-Min">                                  1 </param>
+    <param type="double" name="Q2Grid-Max">                                1e9 </param>
+    <param type="string" name="MaxXSec-DirName">                coper_sakar_11 </param>
+  </param_set>
+
+  <param_set name="CKM">
+    <param type="double" name="CKM-Vud">                          0.97467 </param>
+    <param type="double" name="CKM-Vus">                          0.22361 </param>
+    <param type="double" name="CKM-Vub">                          0.00000 </param>
+    <param type="double" name="CKM-Vcd">                          0.22361 </param>
+    <param type="double" name="CKM-Vcs">                          0.97467 </param>
+    <param type="double" name="CKM-Vcb">                          0.00000 </param>
+    <param type="double" name="CKM-Vtd">                          0.00000 </param>
+    <param type="double" name="CKM-Vts">                          0.00000 </param>
+    <param type="double" name="CKM-Vtb">                          1.00000 </param>
+  </param_set>
+
+  <param_set name="WeakInt"> 
+    <param type="double" name="WeinbergAngle"> 0.491914 </param>
+  </param_set>
+
+  <param_set name="NUCL">
+    <param type="double" name="NUCL-R0"> 1.4 </param>
+    <param type="double" name="NUCL-NR"> 3.0 </param>
+  </param_set>
+
+  <param_set name="Validation">
+    <param type="double" name="GVLD-Emin">          100.000  </param>
+    <param type="double" name="GVLD-Emax"> 1000000000000.000  </param>
+  </param_set>
+
+</common_param_list>

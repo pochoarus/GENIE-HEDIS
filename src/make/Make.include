@@ -194,16 +194,18 @@ LHAPDF_LIBRARIES += -L$(GOPT_WITH_LHAPDF5_LIB) -lLHAPDF $(FORT_LIBRARIES)
 endif
 
 #-------------------------------------------------------------------
-#                             QCDNUM
+#                             APFEL
 #-------------------------------------------------------------------
 
-# log4cpp lib & include directory
+APFEL_LIBRARIES = 
+APFEL_INCLUDES  =
 
-QCDNUM_INC_DIR = $(GOPT_WITH_QCDNUM_INC)
-QCDNUM_LIB_DIR = $(GOPT_WITH_QCDNUM_LIB)
+ifeq ($(strip $(GOPT_ENABLE_APFEL)),YES) 
 
-QCDNUM_INCLUDES  = -I$(QCDNUM_INC_DIR)
-QCDNUM_LIBRARIES = -L$(QCDNUM_LIB_DIR) -lQCDNUM 
+APFEL_INCLUDES  = -I$(GOPT_WITH_APFEL_INC)
+APFEL_LIBRARIES = -L$(GOPT_WITH_APFEL_LIB) -lAPFEL 
+
+endif
 
 #-------------------------------------------------------------------
 #                             PYTHIA6
@@ -535,7 +537,7 @@ CPP_INCLUDES := \
     $(LOG_INCLUDES) \
     $(ROOT_INCLUDES) \
     $(LHAPDF_INCLUDES) \
-    $(QCDNUM_INCLUDES) \
+    $(APFEL_INCLUDES) \
     $(GSL_INCLUDES) \
     $(GENIE_INCLUDES) 
 
@@ -550,7 +552,7 @@ LIBRARIES := $(SYSLIBS) \
              $(ROOT_LIBRARIES) \
              $(PYTHIA_LIBRARIES) \
              $(LHAPDF_LIBRARIES) \
-             $(QCDNUM_LIBRARIES) \
+             $(APFEL_LIBRARIES) \
              $(XML_LIBRARIES) \
              $(LOG_LIBRARIES) \
              $(GSL_LIBRARIES) \

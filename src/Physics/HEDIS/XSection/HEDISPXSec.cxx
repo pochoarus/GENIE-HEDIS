@@ -39,13 +39,15 @@ double HEDISPXSec::XSec(
 
   if(! this -> ValidKinematics (interaction) ) return 0.;
 
-  HEDISFormFactors * formfactors = HEDISFormFactors::Instance(fNLO,fLHAPDFmember,fNX,fNQ2,fCKM);
+  HEDISFormFactors * formfactors = HEDISFormFactors::Instance(fLHAPDFmember,fNLO,fScheme,fQrkThres,fNX,fXmin,fNQ2,fQ2min,fQ2max,fCKM,fMassZ,fMassW,fSin2ThW);
 
   const Kinematics   & kinematics = interaction -> Kine();
   double x     = kinematics.x();
   double Q2    = kinematics.Q2();
 
-  if( !formfactors->ValidKinematicsPDF(x,Q2) ) return 0.;  
+  if ( x<fXmin   ) return 0.;  
+  if ( Q2<fQ2min ) return 0.;
+  if ( Q2>fQ2max ) return 0.;
 
   const InitialState & init_state = interaction -> InitState();
 
@@ -58,6 +60,7 @@ double HEDISPXSec::XSec(
 
   double xsec = ds_dxdy( ff, E, Mnuc, Mlep2, x, y );
 
+#ifdef __GENIE_APFEL_ENABLED__
   if (fNLO && xsec>0) {
     HEDISNuclChannel_t nuclch  = HEDISChannel::HEDISNuclChannel(ch);
     FF_xQ2 fflo  = formfactors->EvalNuclFFLO(nuclch,x,Q2);
@@ -66,13 +69,14 @@ double HEDISPXSec::XSec(
     double nlo = ds_dxdy( ffnlo, E, Mnuc, Mlep2, x, y );
     xsec *= nlo / lo;
   }
+#endif
 
   // Compute the front factor
-  double front_factor = 0;
-  if (interaction -> ProcInfo().IsWeakCC()) front_factor = kGF2 * kMw2 * kMw2 / TMath::Power((Q2 + kMw2), 2) * Mnuc* E / kPi;
-  else                                      front_factor = kGF2 * kMz2 * kMz2 / TMath::Power((Q2 + kMz2), 2) * Mnuc* E / kPi;
+  double propagator = 0;
+  if (interaction -> ProcInfo().IsWeakCC()) propagator = TMath::Power( fMassW*fMassW/(Q2+fMassW*fMassW), 2);
+  else                                      propagator = TMath::Power( fMassZ*fMassZ/(Q2+fMassZ*fMassZ)/(1.-fRho), 2);
 
-  xsec *= front_factor;
+  xsec *= kGF2 * Mnuc* E / kPi * propagator;
 
   LOG("HEDISPXSec", pINFO) << "d2xsec/dxdy[FreeN] (E= " << E << ", x= " << x  << ", y= " << y << ", Q2= " << Q2 << ") = " << xsec;
 
@@ -99,9 +103,9 @@ double HEDISPXSec::ds_dxdy(FF_xQ2 ff, double e, double mt, double ml2, double x,
     //double term4 = x*y*ml2/2/mt/e + ml2*ml2/4/mt/mt/e/e;
     //double term5 = -1.*ml2/2/mt/e;
 
-    double term1 = y * ( x*y );                //genhen
-    double term2 = ( 1 - y );                  //genhen
-    double term3 = ( x*y*(1-y/2) );   //genhen
+    double term1 = y * ( x*y );
+    double term2 = ( 1 - y );
+    double term3 = ( x*y*(1-y/2) );
 
     LOG("HEDISPXSec", pDEBUG) << ff.F1 << "  " << ff.F2 << "  " << ff.F3;
     LOG("HEDISPXSec", pDEBUG) << term1*ff.F1 + term2*ff.F2 + term3*ff.F3;
@@ -155,22 +159,37 @@ void HEDISPXSec::LoadConfig(void)
   fXSecIntegrator = dynamic_cast<const XSecIntegratorI *> (this->SubAlg("XSec-Integrator"));
   assert(fXSecIntegrator);
 
-  GetParamDef("Is-NLO", fNLO, false ) ;
+  GetParam("CKM-Vud", fCKM[0]);
+  GetParam("CKM-Vus", fCKM[1]);
+  GetParam("CKM-Vub", fCKM[2]);
+  GetParam("CKM-Vcd", fCKM[3]);
+  GetParam("CKM-Vcs", fCKM[4]);
+  GetParam("CKM-Vcb", fCKM[5]);
+  GetParam("CKM-Vtd", fCKM[6]);
+  GetParam("CKM-Vts", fCKM[7]);
+  GetParam("CKM-Vtb", fCKM[8]);
 
-  GetParamDef("CKM-Vud", fCKM[0], 1. );
-  GetParamDef("CKM-Vus", fCKM[1], 1. );
-  GetParamDef("CKM-Vub", fCKM[2], 1. );
-  GetParamDef("CKM-Vcd", fCKM[3], 1. );
-  GetParamDef("CKM-Vcs", fCKM[4], 1. );
-  GetParamDef("CKM-Vcb", fCKM[5], 1. );
-  GetParamDef("CKM-Vtd", fCKM[6], 1. );
-  GetParamDef("CKM-Vts", fCKM[7], 1. );
-  GetParamDef("CKM-Vtb", fCKM[8], 1. );
-  for (int i=0; i<9; i++) fCKM[i] = TMath::Power(fCKM[i],2);
+  for (int i=0; i<9; i++) LOG("HEDISPXSec", pERROR) << "CKM" << i << " = " << fCKM[i];
 
   GetParamDef("LHAPDF-member", fLHAPDFmember, string("") ) ;
+  GetParamDef("Is-NLO", fNLO, false ) ;
+  GetParamDef("Scheme", fScheme, string("") ) ;
+  GetParamDef("Quark-Threshold", fQrkThres, 0 ) ;
+  GetParamDef("MassW", fMassW, kMw ) ;
+  GetParamDef("MassZ", fMassZ, kMz ) ;
+  GetParam("WeinbergAngle", fSin2ThW) ;
+  GetParamDef("Rho", fRho, 0. ) ;
 
-  GetParamDef("NX",  fNX,  100 );
-  GetParamDef("NQ2", fNQ2, 100 );
+  if (fSin2ThW==0.) fSin2ThW = 1.-fMassW*fMassW/fMassZ/fMassZ/(1+fRho) ;
+  else              fSin2ThW = TMath::Power(TMath::Sin(fSin2ThW),2);
+
+  LOG("HEDISPXSec", pERROR) << "fSin2ThW = " << fSin2ThW;
+
+
+  GetParamDef("NGridX",  fNX,  100 );
+  GetParamDef("NGridQ2", fNQ2, 100 );
+  GetParamDef("XGrid-Min",    fXmin, 1e-10 );
+  GetParamDef("Q2Grid-Min",  fQ2min,   0.1 );
+  GetParamDef("Q2Grid-Max",  fQ2max,  1e10 );
 
 }

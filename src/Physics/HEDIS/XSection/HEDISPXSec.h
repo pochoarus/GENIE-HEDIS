@@ -32,14 +32,19 @@ namespace genie {
       const XSecIntegratorI *        fXSecIntegrator;     ///< diff. xsec integrator
     
       double fCKM[9];
-      bool fNLO;
       string fLHAPDFmember;
+      bool fNLO;
+      string fScheme;
+      int fQrkThres;
+      double fMassW;
+      double fMassZ;
+      double fRho;
+      double fSin2ThW;
       int fNX;
       int fNQ2;
-
-
-
-
+      double fXmin;
+      double fQ2min;
+      double fQ2max;
   };
 
 }       // genie namespace

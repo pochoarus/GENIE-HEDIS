@@ -217,6 +217,46 @@ namespace genie {
         }
         return kHEDISNull;
       }
+      static InteractionType_t InteractionType(HEDISNuclChannel_t channel)
+      {
+
+        switch (channel) {
+          case (kHEDISNucl_v_nc_p)       : return kIntWeakNC;   break;
+          case (kHEDISNucl_v_nc_n)       : return kIntWeakNC;   break;
+          case (kHEDISNucl_vbar_nc_p)    : return kIntWeakNC;   break;
+          case (kHEDISNucl_vbar_nc_n)    : return kIntWeakNC;   break;
+
+          default : return kIntWeakCC;  break;
+        }
+        return kIntNull;
+      }
+      //__________________________________________________________________________
+      static bool IsNu(HEDISNuclChannel_t channel)
+      {
+        switch (channel) {
+          case (kHEDISNucl_vbar_cc_p)    : return false;   break;
+          case (kHEDISNucl_vbar_cc_n)    : return false;   break;
+          case (kHEDISNucl_vbar_nc_p)    : return false;   break;
+          case (kHEDISNucl_vbar_nc_n)    : return false;   break;
+
+          default : return true;  break;
+        }
+        return true;
+      }
+      //__________________________________________________________________________
+      static int HitNuclPdg(HEDISNuclChannel_t channel)
+      {
+
+        switch (channel) {
+          case (kHEDISNucl_v_cc_n)       : return kPdgNeutron;      break;
+          case (kHEDISNucl_vbar_cc_n)    : return kPdgNeutron;   break;
+          case (kHEDISNucl_v_nc_n)       : return kPdgNeutron;      break;
+          case (kHEDISNucl_vbar_nc_n)    : return kPdgNeutron;   break;
+
+          default : return kPdgProton;  break;
+        }
+        return 0;
+      }
       //__________________________________________________________________________
       static string AsString(HEDISChannel_t channel)
       {

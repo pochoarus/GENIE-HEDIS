@@ -25,6 +25,8 @@ public:
 private:
   void   LoadConfig (void);
 
+  string fMaxXsecDirName;
+
   double fdlogy;
   double fdlogx;
   std::vector<double> fVy;

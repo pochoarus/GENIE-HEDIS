@@ -129,7 +129,7 @@ double HEDISXSec::Integrate(
 
   LOG("HEDISXSec", pINFO)  << "XSec[HEDIS] (E = " << Ev << " GeV) = " << xsec * (1E+38/units::cm2) << " x 1E-38 cm^2  (max = " << d2xsec_max << ")";
 
-  string maxxsecfilename = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/maxxsec/" + filename;
+  string maxxsecfilename = fMaxXsecDirName + "/" + filename;
   std::ofstream maxxsec_stream(maxxsecfilename.c_str(),std::fstream::app);
   maxxsec_stream << Ev << "  " << d2xsec_max << std::endl;
   maxxsec_stream.close();
@@ -152,6 +152,10 @@ void HEDISXSec::Configure(string config)
 //____________________________________________________________________________
 void HEDISXSec::LoadConfig(void)
 {
+
+  GetParamDef("MaxXSec-DirName", fMaxXsecDirName, string("") ) ;
+  fMaxXsecDirName = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/maxxsec/" + fMaxXsecDirName;
+  if ( gSystem->mkdir(fMaxXsecDirName.c_str())==0 ) LOG("HEDISFormFactors", pINFO) << "Creating Max Xsec directory: " << fMaxXsecDirName;
 
   GetParamDef("DlogY", fdlogy, 0.01 ) ;
   GetParamDef("DlogX", fdlogx, 0.01 ) ;
