@@ -153,12 +153,12 @@ void HEDISXSec::Configure(string config)
 void HEDISXSec::LoadConfig(void)
 {
 
-  GetParamDef("MaxXSec-DirName", fMaxXsecDirName, string("") ) ;
-  fMaxXsecDirName = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/maxxsec/" + fMaxXsecDirName;
-  if ( gSystem->mkdir(fMaxXsecDirName.c_str())==0 ) LOG("HEDISFormFactors", pINFO) << "Creating Max Xsec directory: " << fMaxXsecDirName;
-
   GetParamDef("DlogY", fdlogy, 0.01 ) ;
   GetParamDef("DlogX", fdlogx, 0.01 ) ;
+
+  GetParamDef("MaxXSec-DirName", fMaxXsecDirName, string("") ) ;
+  fMaxXsecDirName = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/maxxsec/" + fMaxXsecDirName + "_dx" + std::to_string(fdlogx) + "_dy" + std::to_string(fdlogy);
+  if ( gSystem->mkdir(fMaxXsecDirName.c_str())==0 ) LOG("HEDISFormFactors", pINFO) << "Creating Max Xsec directory: " << fMaxXsecDirName;
 
   double flogymin = -10;
   double flogxmin = -10;

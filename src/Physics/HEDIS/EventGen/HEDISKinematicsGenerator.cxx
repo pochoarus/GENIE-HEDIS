@@ -239,9 +239,14 @@ void HEDISKinematicsGenerator::Configure(string config)
 void HEDISKinematicsGenerator::LoadConfig(void)
 {
 
+  double dlogy;
+  double dlogx;
+  GetParamDef("DlogY", dlogy, 0.01 ) ;
+  GetParamDef("DlogX", dlogx, 0.01 ) ;
+
   //-- File name where the maximum differential cross section is stored
   GetParamDef("MaxXSec-DirName", fMaxXsecDirName, string("") ) ;
-  fMaxXsecDirName = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/maxxsec/" + fMaxXsecDirName;
+  fMaxXsecDirName = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/maxxsec/" + fMaxXsecDirName + "_dx" + std::to_string(dlogx) + "_dy" + std::to_string(dlogy);
 
   //-- Safety factor for the maximum differential cross section
   GetParamDef("MaxXSec-SafetyFactor", fSafetyFactor, 2. ) ;

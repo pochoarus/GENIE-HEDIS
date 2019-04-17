@@ -61,13 +61,15 @@ double HEDISPXSec::XSec(
   double xsec = ds_dxdy( ff, E, Mnuc, Mlep2, x, y );
 
 #ifdef __GENIE_APFEL_ENABLED__
-  if (fNLO && xsec>0) {
+  if (fNLO && xsec>0.) {
     HEDISNuclChannel_t nuclch  = HEDISChannel::HEDISNuclChannel(ch);
     FF_xQ2 fflo  = formfactors->EvalNuclFFLO(nuclch,x,Q2);
     FF_xQ2 ffnlo = formfactors->EvalNuclFFNLO(nuclch,x,Q2);
     double lo  = ds_dxdy( fflo, E, Mnuc, Mlep2, x, y );
-    double nlo = ds_dxdy( ffnlo, E, Mnuc, Mlep2, x, y );
-    xsec *= nlo / lo;
+    if (lo>0.) {
+      double nlo = ds_dxdy( ffnlo, E, Mnuc, Mlep2, x, y );
+      xsec *= nlo / lo;
+    }
   }
 #endif
 

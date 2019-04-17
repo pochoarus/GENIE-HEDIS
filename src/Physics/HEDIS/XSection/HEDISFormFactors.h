@@ -83,6 +83,7 @@ namespace genie {
       double fVud2; double fVus2; double fVub2;
       double fVcd2; double fVcs2; double fVcb2;
       double fVtd2; double fVts2; double fVtb2;
+      double fSin2ThW;
 
       string fLHAPDFmember;
       map<int, double> mPDFQrk;

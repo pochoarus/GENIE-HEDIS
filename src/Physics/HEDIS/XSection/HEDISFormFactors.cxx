@@ -16,29 +16,8 @@
 LHAPDF::PDF* pdf;
 #endif
 
-
 using namespace genie;
 using namespace genie::constants;
-
-//constants for NC
-double Sin2thw   = 1 - kMw2 / kMz2;
-double gvu    =  1./2. - 4./3.*Sin2thw;
-double gvd    = -1./2. + 2./3.*Sin2thw;
-double gau    =  1./2.;
-double gad    = -1./2.;
-
-struct NCCouplings {
-  double c2;
-  double c3;
-};
-
-NCCouplings GetNCCouplings(double gv, double ga) {
-  NCCouplings cp;
-  cp.c2 = TMath::Power(gv, 2.) + TMath::Power(ga, 2.);
-  cp.c3 = 2*gv*ga;
-  return cp;
-}
-
 
 #ifdef __GENIE_APFEL_ENABLED__
 double ReadPDFs(int* ii, double* xx, double* qq2, bool* fst) {
@@ -67,10 +46,11 @@ HEDISFormFactors::HEDISFormFactors(string LHAPDFmember, bool NLO, string Scheme,
 
   //creating directory where form factors will be stored and check if it already exists
   string snlo = (NLO) ? "NLO" : "LO";
-  fFormFactorsDir = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/formfactors/" + LHAPDFmember + "_" + snlo + "_" + Scheme + "_nx" + to_string(NX) + "_nq2" + to_string(NQ2) + "/";
+  fFormFactorsDir = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/formfactors/" + LHAPDFmember + "_" + snlo + "_" + Scheme + "_qthrs" + to_string(QrkThrs) + "_nx" + to_string(NX) + "_nq2" + to_string(NQ2) + "/";
   if ( gSystem->mkdir(fFormFactorsDir.c_str())==0 ) LOG("HEDISFormFactors", pINFO) << "Creating Form Factors directory: " << fFormFactorsDir;
 
   fQrkThrs = QrkThrs;
+  fSin2ThW = Sin2ThW;
 
   //filling CKM matrix using values from configuration file
   fVud2 = TMath::Power(CKM[0],2); fVus2 = TMath::Power(CKM[1],2); fVub2 = TMath::Power(CKM[2],2);
@@ -171,7 +151,7 @@ HEDISFormFactors::HEDISFormFactors(string LHAPDFmember, bool NLO, string Scheme,
     APFEL::SetProtonMass(kProtonMass);
     APFEL::SetWMass(MW);
     APFEL::SetZMass(MZ);
-    APFEL::SetSin2ThetaW(Sin2thw);
+    APFEL::SetSin2ThetaW(Sin2ThW);
     APFEL::SetCKM(CKM[0], CKM[1], CKM[2],
                   CKM[3], CKM[4], CKM[5],
                   CKM[6], CKM[7], CKM[8]);
@@ -335,21 +315,22 @@ void HEDISFormFactors::CreateFormFactorFile( HEDISChannel_t ch, string filename 
     }
   }
   else if ( HEDISChannel::InteractionType(ch) == kIntWeakNC ) {           
-    NCCouplings Au, Ad;
-    Ad = GetNCCouplings(gvd,gad);
-    Au = GetNCCouplings(gvu,gau);
-    if      ( pdg_iq== 1 && !sea_iq && pdg_fq== 1 ) { qpdf1 =  qrkd; qpdf2 = -qrkd; Cp2 = Ad.c2; Cp3 =  Ad.c3; }
-    else if ( pdg_iq== 2 && !sea_iq && pdg_fq== 2 ) { qpdf1 =  qrku; qpdf2 = -qrku; Cp2 = Au.c2; Cp3 =  Au.c3; }
-    else if ( pdg_iq== 1 &&  sea_iq && pdg_fq== 1 ) { qpdf1 = -qrkd;                Cp2 = Ad.c2; Cp3 =  Ad.c3; }
-    else if ( pdg_iq== 2 &&  sea_iq && pdg_fq== 2 ) { qpdf1 = -qrku;                Cp2 = Au.c2; Cp3 =  Au.c3; }
-    else if ( pdg_iq== 3 &&  sea_iq && pdg_fq== 3 ) { qpdf1 =  3;                   Cp2 = Ad.c2; Cp3 =  Ad.c3; }
-    else if ( pdg_iq== 4 &&  sea_iq && pdg_fq== 4 ) { qpdf1 =  4;                   Cp2 = Au.c2; Cp3 =  Au.c3; }
-    else if ( pdg_iq== 5 &&  sea_iq && pdg_fq== 5 ) { qpdf1 =  5;                   Cp2 = Ad.c2; Cp3 =  Ad.c3; }
-    else if ( pdg_iq==-1 &&  sea_iq && pdg_fq==-1 ) { qpdf1 = -qrkd;                Cp2 = Ad.c2; Cp3 = -Ad.c3; }
-    else if ( pdg_iq==-2 &&  sea_iq && pdg_fq==-2 ) { qpdf1 = -qrku;                Cp2 = Au.c2; Cp3 = -Au.c3; }
-    else if ( pdg_iq==-3 &&  sea_iq && pdg_fq==-3 ) { qpdf1 = -3;                   Cp2 = Ad.c2; Cp3 = -Ad.c3; }
-    else if ( pdg_iq==-4 &&  sea_iq && pdg_fq==-4 ) { qpdf1 = -4;                   Cp2 = Au.c2; Cp3 = -Au.c3; }
-    else if ( pdg_iq==-5 &&  sea_iq && pdg_fq==-5 ) { qpdf1 = -5;                   Cp2 = Ad.c2; Cp3 = -Ad.c3; }
+    double c2u = TMath::Power( 1./2. - 4./3.*fSin2ThW,2) + 1./4.;
+    double c2d = TMath::Power(-1./2. + 2./3.*fSin2ThW,2) + 1./4.;
+    double c3u = 1./2. - 4./3.*fSin2ThW;
+    double c3d = 1./2. - 2./3.*fSin2ThW;
+    if      ( pdg_iq== 1 && !sea_iq && pdg_fq== 1 ) { qpdf1 =  qrkd; qpdf2 = -qrkd; Cp2 = c2d; Cp3 =  c3d; }
+    else if ( pdg_iq== 2 && !sea_iq && pdg_fq== 2 ) { qpdf1 =  qrku; qpdf2 = -qrku; Cp2 = c2u; Cp3 =  c3u; }
+    else if ( pdg_iq== 1 &&  sea_iq && pdg_fq== 1 ) { qpdf1 = -qrkd;                Cp2 = c2d; Cp3 =  c3d; }
+    else if ( pdg_iq== 2 &&  sea_iq && pdg_fq== 2 ) { qpdf1 = -qrku;                Cp2 = c2u; Cp3 =  c3u; }
+    else if ( pdg_iq== 3 &&  sea_iq && pdg_fq== 3 ) { qpdf1 =  3;                   Cp2 = c2d; Cp3 =  c3d; }
+    else if ( pdg_iq== 4 &&  sea_iq && pdg_fq== 4 ) { qpdf1 =  4;                   Cp2 = c2u; Cp3 =  c3u; }
+    else if ( pdg_iq== 5 &&  sea_iq && pdg_fq== 5 ) { qpdf1 =  5;                   Cp2 = c2d; Cp3 =  c3d; }
+    else if ( pdg_iq==-1 &&  sea_iq && pdg_fq==-1 ) { qpdf1 = -qrkd;                Cp2 = c2d; Cp3 = -c3d; }
+    else if ( pdg_iq==-2 &&  sea_iq && pdg_fq==-2 ) { qpdf1 = -qrku;                Cp2 = c2u; Cp3 = -c3u; }
+    else if ( pdg_iq==-3 &&  sea_iq && pdg_fq==-3 ) { qpdf1 = -3;                   Cp2 = c2d; Cp3 = -c3d; }
+    else if ( pdg_iq==-4 &&  sea_iq && pdg_fq==-4 ) { qpdf1 = -4;                   Cp2 = c2u; Cp3 = -c3u; }
+    else if ( pdg_iq==-5 &&  sea_iq && pdg_fq==-5 ) { qpdf1 = -5;                   Cp2 = c2d; Cp3 = -c3d; }
   }   
 
   //varaibles used for certain threshold options
@@ -471,7 +452,7 @@ void HEDISFormFactors::CreateLONuclFormFactorFile( HEDISNuclChannel_t ch, string
     for ( const auto& Q2 : ff_logq2_array ) {
       for ( const auto& x : ff_logx_array ) {
         double tmp = 0;
-        for( int qch=frstqrkch; qch<=lastqrkch; qch++ ) tmp += fFormFactorsTables[(HEDISChannel_t)qch].Table[(HEDISFormFactorType_t)ff]->Evaluate(x,Q2);
+        for( int qch=frstqrkch; qch<=lastqrkch; qch++ ) tmp += fFormFactorsTables[(HEDISChannel_t)qch].Table[(HEDISFormFactorType_t)ff]->Evaluate(Q2,x);
         LOG("HEDISFormFactors", pDEBUG) << "NuclLOF" << ff << "[x=" << x << "," << Q2 << "] = " << tmp;
         ff_stream << tmp << "  ";
       }
