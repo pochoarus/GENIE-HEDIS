@@ -3,11 +3,15 @@
  Copyright (c) 2003-2018, The GENIE Collaboration
  For the full text of the license visit http://copyright.genie-mc.org
  or see $GENIE/LICENSE
+ 
  Author: Anselmo Meregaglia <anselmo.meregaglia \at cern.ch>, ETH Zurich
          Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>, STFC - Rutherford Lab
          Robert Hatcher <rhatcher \at fnal.gov>, Fermilab
+
          May 24, 2005
+
  For the class documentation see the corresponding header file.
+
  Important revisions after version 2.0.0 :
  @ Feb 28, 2008 - CA
    Slight code restructuring to make it easier keeping track of conversions
@@ -78,6 +82,7 @@
    Previously used TString::Contains("vol2match") which did not require the string
    length to be the same and sometime lead to degeneracies and selection of 
    incorrect top volume. Bug and fix were found by Kevin Connolly.   
+
 */
 //____________________________________________________________________________
 
