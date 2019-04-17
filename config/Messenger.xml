@@ -87,6 +87,7 @@
   <priority msgstream="FragmRecUtils">         WARN </priority>
   <priority msgstream="GEVGDriver">            WARN </priority>
   <priority msgstream="GMCJDriver">            WARN </priority>
+  <priority msgstream="GTRJDriver">            WARN </priority>
   <priority msgstream="GEVGPool">              WARN   </priority>
   <priority msgstream="GMCJob">                WARN   </priority>
   <priority msgstream="GMCJMonitor">           WARN   </priority>

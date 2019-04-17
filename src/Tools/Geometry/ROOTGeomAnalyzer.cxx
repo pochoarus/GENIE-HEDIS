@@ -3,15 +3,11 @@
  Copyright (c) 2003-2018, The GENIE Collaboration
  For the full text of the license visit http://copyright.genie-mc.org
  or see $GENIE/LICENSE
-
  Author: Anselmo Meregaglia <anselmo.meregaglia \at cern.ch>, ETH Zurich
          Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>, STFC - Rutherford Lab
          Robert Hatcher <rhatcher \at fnal.gov>, Fermilab
-
          May 24, 2005
-
  For the class documentation see the corresponding header file.
-
  Important revisions after version 2.0.0 :
  @ Feb 28, 2008 - CA
    Slight code restructuring to make it easier keeping track of conversions
@@ -82,7 +78,6 @@
    Previously used TString::Contains("vol2match") which did not require the string
    length to be the same and sometime lead to degeneracies and selection of 
    incorrect top volume. Bug and fix were found by Kevin Connolly.   
-
 */
 //____________________________________________________________________________
 
@@ -273,6 +268,42 @@ const PathLengthList & ROOTGeomAnalyzer::ComputePathLengths(
   this->Local2SI(*fCurrPathLengthList); // curr geom units -> SI
 
   return *fCurrPathLengthList;
+}
+
+//___________________________________________________________________________
+std::vector< std::pair<double, const TGeoMaterial*> > ROOTGeomAnalyzer::ComputeMatLengths(
+                          const TLorentzVector & x, const TLorentzVector & p)
+{
+
+  // if trimming configure with neutrino ray's info
+  if ( fGeomVolSelector ) {
+    fGeomVolSelector->SetCurrentRay(x,p);
+    fGeomVolSelector->SetSI2Local(1/this->LengthUnits());
+  }
+
+  TVector3 udir = p.Vect().Unit(); // unit vector along direction
+  TVector3 pos = x.Vect();         // initial position
+  this->SI2Local(pos);             // SI -> curr geom units
+  
+  if (!fMasterToTopIsIdentity) {
+    this->Master2Top(pos);         // transform position (master -> top)
+    this->Master2TopDir(udir);     // transform direction (master -> top)
+  }
+
+  this->SwimOnce(pos,udir);
+
+  std::vector<std::pair<double, const TGeoMaterial*>> MatLengthList;
+
+  const PathSegmentList::PathSegmentV_t& segments = fCurrPathSegmentList->GetPathSegmentV();
+
+  PathSegmentList::PathSegVCItr_t sitr;
+  for ( sitr = segments.begin(); sitr != segments.end(); ++sitr) {
+    const PathSegment& seg = *sitr;
+    double pl = seg.GetSummedStepRange();
+    if (seg.fMaterial->GetDensity()>0) MatLengthList.push_back(std::make_pair(pl,seg.fMaterial));
+  }
+
+  return MatLengthList;
 }
 
 //___________________________________________________________________________

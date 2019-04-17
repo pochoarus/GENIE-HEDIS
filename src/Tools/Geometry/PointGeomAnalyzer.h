@@ -55,6 +55,12 @@ public :
   const TVector3 &
            GenerateVertex
              (const TLorentzVector & x, const TLorentzVector & p, int tgtpdg);
+  std::vector< std::pair<double, const TGeoMaterial*> > 
+           ComputeMatLengths
+             (const TLorentzVector & x, const TLorentzVector & p) 
+               { return std::vector<std::pair<double, const TGeoMaterial*>>(); }
+  int    GetTargetPdgCode (const TGeoMaterial * const m) const { return 0; }
+  int    GetTargetPdgCode (const TGeoMixture * const m, int ielement) const { return 0; }
 private:
 
   void Initialize (const map<int,double> & tgtmap);
