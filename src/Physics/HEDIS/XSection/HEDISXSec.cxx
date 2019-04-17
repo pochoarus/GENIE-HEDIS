@@ -6,6 +6,7 @@
 #include "Framework/Utils/Range1.h"
 #include "Framework/Utils/KineUtils.h"
 #include "Framework/Utils/XSecSplineList.h"
+#include "Framework/Utils/RunOpt.h"
 #include "Framework/Numerical/Spline.h"
 
 #include <TMath.h>
@@ -156,8 +157,11 @@ void HEDISXSec::LoadConfig(void)
   GetParamDef("DlogY", fdlogy, 0.01 ) ;
   GetParamDef("DlogX", fdlogx, 0.01 ) ;
 
-  GetParamDef("MaxXSec-DirName", fMaxXsecDirName, string("") ) ;
-  fMaxXsecDirName = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/maxxsec/" + fMaxXsecDirName + "_dx" + std::to_string(fdlogx) + "_dy" + std::to_string(fdlogy);
+  std::ostringstream sdlogy,sdlogx; 
+  sdlogy << fdlogy;
+  sdlogx << fdlogy;
+
+  fMaxXsecDirName = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/maxxsec/" + RunOpt::Instance()->Tune()->Name() + "_dx" + sdlogx.str() + "_dy" + sdlogy.str();
   if ( gSystem->mkdir(fMaxXsecDirName.c_str())==0 ) LOG("HEDISFormFactors", pINFO) << "Creating Max Xsec directory: " << fMaxXsecDirName;
 
   double flogymin = -10;

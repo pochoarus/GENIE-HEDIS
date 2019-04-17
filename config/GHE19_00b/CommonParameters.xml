@@ -17,7 +17,6 @@
     <param type="double" name="Q2Grid-Max">                                1e9 </param>
     <param type="double" name="DlogY">                                     0.01 </param>
     <param type="double" name="DlogX">                                     0.1 </param>
-    <param type="string" name="MaxXSec-DirName">                coper_sakar_11 </param>
   </param_set>
 
   <param_set name="CKM">

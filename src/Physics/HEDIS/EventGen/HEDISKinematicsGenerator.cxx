@@ -11,6 +11,7 @@
 #include "Framework/Numerical/RandomGen.h"
 #include "Framework/Utils/KineUtils.h"
 #include "Framework/Utils/Range1.h"
+#include "Framework/Utils/RunOpt.h"
 #include "Framework/ParticleData/PDGUtils.h"
 
 #include <TMath.h>
@@ -244,9 +245,11 @@ void HEDISKinematicsGenerator::LoadConfig(void)
   GetParamDef("DlogY", dlogy, 0.01 ) ;
   GetParamDef("DlogX", dlogx, 0.01 ) ;
 
-  //-- File name where the maximum differential cross section is stored
-  GetParamDef("MaxXSec-DirName", fMaxXsecDirName, string("") ) ;
-  fMaxXsecDirName = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/maxxsec/" + fMaxXsecDirName + "_dx" + std::to_string(dlogx) + "_dy" + std::to_string(dlogy);
+  std::ostringstream sdlogy,sdlogx; 
+  sdlogy << dlogy;
+  sdlogx << dlogy;
+
+  fMaxXsecDirName = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/maxxsec/" + RunOpt::Instance()->Tune()->Name() + "_dx" + sdlogx.str() + "_dy" + sdlogy.str();
 
   //-- Safety factor for the maximum differential cross section
   GetParamDef("MaxXSec-SafetyFactor", fSafetyFactor, 2. ) ;
