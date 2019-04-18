@@ -159,7 +159,7 @@ void HEDISXSec::LoadConfig(void)
 
   std::ostringstream sdlogy,sdlogx; 
   sdlogy << fdlogy;
-  sdlogx << fdlogy;
+  sdlogx << fdlogx;
 
   fMaxXsecDirName = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/maxxsec/" + RunOpt::Instance()->Tune()->Name() + "_dx" + sdlogx.str() + "_dy" + sdlogy.str();
   if ( gSystem->mkdir(fMaxXsecDirName.c_str())==0 ) LOG("HEDISFormFactors", pINFO) << "Creating Max Xsec directory: " << fMaxXsecDirName;

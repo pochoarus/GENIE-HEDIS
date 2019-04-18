@@ -247,7 +247,7 @@ void HEDISKinematicsGenerator::LoadConfig(void)
 
   std::ostringstream sdlogy,sdlogx; 
   sdlogy << dlogy;
-  sdlogx << dlogy;
+  sdlogx << dlogx;
 
   fMaxXsecDirName = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/maxxsec/" + RunOpt::Instance()->Tune()->Name() + "_dx" + sdlogx.str() + "_dy" + sdlogy.str();
 
