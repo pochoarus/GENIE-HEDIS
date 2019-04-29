@@ -249,7 +249,7 @@ void HEDISKinematicsGenerator::LoadConfig(void)
   sdlogy << dlogy;
   sdlogx << dlogx;
 
-  fMaxXsecDirName = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/maxxsec/" + RunOpt::Instance()->Tune()->Name() + "_dx" + sdlogx.str() + "_dy" + sdlogy.str();
+  fMaxXsecDirName = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/maxxsec/" + RunOpt::Instance()->Tune()->Name() + "_dx" + sdlogx.str() + "dy" + sdlogy.str();
 
   //-- Safety factor for the maximum differential cross section
   GetParamDef("MaxXSec-SafetyFactor", fSafetyFactor, 2. ) ;

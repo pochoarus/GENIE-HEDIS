@@ -106,7 +106,7 @@ HEDISFormFactors::HEDISFormFactors(string LHAPDFmember, bool NLO, string Scheme,
 
   // define arrays to fill from data files
   double dlogq2 = TMath::Abs( TMath::Log10(Q2GRIDmin)-TMath::Log10(Q2GRIDmax) ) / NQ2;
-  double dlogx  = TMath::Abs( TMath::Log10(xPDFmin)-TMath::Log10(1.) ) / NX;
+  double dlogx  = TMath::Abs( TMath::Log10(xGRIDmin)-TMath::Log10(1.) ) / NX;
 
   LOG("HEDISFormFactors", pINFO) << "Grid x,Q2 :" << NX << " , " << NQ2;
 
@@ -360,7 +360,7 @@ void HEDISFormFactors::CreateFormFactorFile( HEDISChannel_t ch, string filename 
 
         double xPDF = TMath::Max( z, xPDFmin );
         double Q2PDF = TMath::Max( Q2, Q2PDFmin );
-        Q2PDF = TMath::Min( Q2, Q2PDFmax  );
+        Q2PDF = TMath::Min( Q2PDF, Q2PDFmax  );
 
         double fPDF = fmax( pdf->xfxQ2(qpdf1, xPDF, Q2PDF)/z , 0.);
         if (qpdf2!= -999) fPDF -= fmax( pdf->xfxQ2(qpdf2, xPDF, Q2PDF)/z , 0.);
