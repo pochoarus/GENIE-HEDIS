@@ -235,7 +235,10 @@ bool GTRJDriver::ComputeInteraction(void)
         const TGeoMixture * mixt = dynamic_cast <const TGeoMixture*> (mat);
         for (int i = 0; i < mixt->GetNelements(); i++) {
           FracCum += mixt->GetWmixt()[i]; // relative proportion by mass
-          if (R<FracCum) fCurTgtPdg = fGeomAnalyzer->GetTargetPdgCode(mixt, i);
+          if (R<FracCum) {
+            fCurTgtPdg = fGeomAnalyzer->GetTargetPdgCode(mixt, i);
+            break;
+          }
         }
       }
       else fCurTgtPdg = fGeomAnalyzer->GetTargetPdgCode(mat);
