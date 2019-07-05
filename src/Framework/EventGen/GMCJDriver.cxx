@@ -721,7 +721,7 @@ void GMCJDriver::BootstrapXSecSplineSummation(void)
     double dE  = fEmax/10.;
     double min = rE.min;
     double max = (fEmax+dE < rE.max) ? fEmax+dE : rE.max;
-    evgdriver->CreateXSecSumSpline(100,min,max,true);
+    evgdriver->CreateXSecSumSpline(1000,min,max,true);
   }
   LOG("GMCJDriver", pNOTICE)
      << "Finished summing all interaction xsec splines per initial state";

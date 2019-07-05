@@ -119,8 +119,8 @@ void GTRJDriver::Configure()
      double min = rE.min;
      double max = (fFluxDriver->MaxEnergy() < rE.max) ? fFluxDriver->MaxEnergy() : rE.max;
 
-     evgdriver->CreateSplines( 200, max-1, true ); //splines has been computed up to from 1e2 to 1e10 with 200knots (avoid zero at edges)
-     evgdriver->CreateXSecSumSpline( 200, min+1e-6, max-2, true );
+     evgdriver->CreateSplines( 1000, max-1, true ); //splines has been computed up to from 1e2 to 1e10 with 200knots (avoid zero at edges)
+     evgdriver->CreateXSecSumSpline( 1000, min+1e-6, max-2, true );
 
      LOG("GTRJDriver", pDEBUG) << "Adding new GEVGDriver object to GEVGPool";
      fGPool->insert( GEVGPool::value_type(init_state.AsString(), evgdriver) );
@@ -242,6 +242,11 @@ bool GTRJDriver::ComputeInteraction(void)
         }
       }
       else fCurTgtPdg = fGeomAnalyzer->GetTargetPdgCode(mat);
+
+			if(fCurTgtPdg==0) {
+        LOG("GTRJDriver", pERROR) << "** Rejecting current flux neutrino (failed to select tgt!)";
+        return false;
+  		}
 
       fCurdL += length * (N - (NIntCum-NInt)) / NInt;
 
