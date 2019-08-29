@@ -8,6 +8,6 @@
 
 #pragma link C++ class genie::HEDISXSec;
 #pragma link C++ class genie::HEDISPXSec;
-#pragma link C++ class genie::HEDISFormFactors;
+#pragma link C++ class genie::HEDISStrucFunc;
 
 #endif

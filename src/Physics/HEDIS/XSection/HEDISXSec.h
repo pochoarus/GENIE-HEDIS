@@ -1,3 +1,22 @@
+//____________________________________________________________________________
+/*!
+
+\class    genie::HEDISXSec
+
+\brief    Computes the HEDIS Cross Section. \n
+          Is a concrete implementation of the XSecIntegratorI interface. \n
+
+\author   Alfonso Garcia <alfonsog \at nikhef.nl>
+          NIKHEF
+
+\created  August 28, 2019
+
+\cpright  Copyright (c) 2003-2018, The GENIE Collaboration
+          For the full text of the license visit http://copyright.genie-mc.org
+          or see $GENIE/LICENSE
+*/
+//____________________________________________________________________________
+
 #ifndef _HEDIS_XSEC_H_
 #define _HEDIS_XSEC_H_
 
@@ -25,12 +44,13 @@ public:
 private:
   void   LoadConfig (void);
 
-  string fMaxXsecDirName;
+  mutable bool fMaxXsecFileExists = false;  // Flag to check if Max Xsec file exists
+  string fMaxXsecDirName;                   // Name of Max Xsec directory
 
-  double fdlogy;
-  double fdlogx;
-  std::vector<double> fVy;
-  std::vector<double> fVx;
+  double fdlogy;                            // Binning size in log10x for grid integration
+  double fdlogx;                            // Binning size in log10y for grid integration
+  std::vector<double> fVy;                  // x binning for grid integration
+  std::vector<double> fVx;                  // y binning for grid integration
 
 };
 

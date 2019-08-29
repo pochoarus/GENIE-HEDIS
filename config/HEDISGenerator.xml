@@ -9,8 +9,15 @@ Configuration sets for HEDISGenerator EventRecordVisitorI
 -->
 
   <param_set name="Default"> 
-     <param type="bool"  name="PromptPythiaList">    false                                                  </param>
-     <param type="double" name="pT">                 0.44                                                  </param>
+     <param type="bool"   name="PromptPythiaList">          false </param>
+     <param type="double" name="Primordial-kT">              0.44 </param>
+     <param type="double" name="Remnant-pT">                 0.35 </param>
+     <param type="double" name="Energy-Singlet">              0.5 </param>
+     <param type="int"    name="PYTHIA-Warnings">         1000000 </param>
+     <param type="int"    name="PYTHIA-Errors">           1000000 </param>
+     <param type="int"    name="PYTHIA-QuarkMass">              1 </param>
+     <param type="int"    name="PYTHIA-DecayCutOff">            2 </param>
+     <param type="double" name="PYTHIA-DecayLength">       0.0003 </param>
   </param_set>
 
 </alg_conf>

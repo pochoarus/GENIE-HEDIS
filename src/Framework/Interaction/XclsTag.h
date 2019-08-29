@@ -62,7 +62,7 @@ public:
   bool KnownResonance     (void) const { return (fResonance != kNoResonance); }
   Resonance_t Resonance   (void) const { return fResonance; }
   int  DecayMode          (void) const { return fDecayMode; }
-  HEDISChannel_t HEDISChannel (void) const { return fHEDISChannel; }
+  HEDISQrkChannel_t HEDISQrkChannel (void) const { return fHEDISQrkChannel; }
   bool IsFinalQuarkEvent  (void) const { return fIsFinalQuarkEvent;  }
   int  FinalQuarkPdg      (void) const { return fFinalQuarkPdg;      }
   bool IsFinalLeptonEvent (void) const { return fIsFinalLeptonEvent; }
@@ -81,7 +81,7 @@ public:
   void ResetNNucleons (void);
   void SetResonance   (Resonance_t res);
   void SetDecayMode   (int decay_mode);
-  void SetHEDISChannel (HEDISChannel_t channel);
+  void SetHEDISQrkChannel (HEDISQrkChannel_t channel);
   void SetFinalQuark  (int finalquark_pdgc = 0);
   void SetFinalLepton (int finallepton_pdgc = 0);
 
@@ -108,7 +108,7 @@ private:
   int         fNPiMinus;         ///< # of pi^-'s in the hadronic system after this Xcls reaction (before FSI)
   Resonance_t fResonance;        ///< baryon resonance excited by probe
   int         fDecayMode;
-  HEDISChannel_t fHEDISChannel;          ///< hedis channel
+  HEDISQrkChannel_t fHEDISQrkChannel;          ///< hedis channel
   bool           fIsFinalQuarkEvent;     ///< true if we have define final quark
   int            fFinalQuarkPdg;         ///< final quark pdg-code
   bool           fIsFinalLeptonEvent;    ///< true if we have define final lepton

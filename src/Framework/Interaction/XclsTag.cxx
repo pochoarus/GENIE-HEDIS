@@ -130,9 +130,9 @@ void XclsTag::SetDecayMode(int decay_mode)
   fDecayMode = decay_mode;
 }
 //___________________________________________________________________________
-void XclsTag::SetHEDISChannel(HEDISChannel_t channel)
+void XclsTag::SetHEDISQrkChannel(HEDISQrkChannel_t channel)
 {
-  fHEDISChannel = channel;
+  fHEDISQrkChannel = channel;
 }
 //___________________________________________________________________________
 void XclsTag::SetFinalQuark(int finalquark_pdgc)
@@ -160,7 +160,7 @@ void XclsTag::Reset(void)
   fNPiMinus         = 0;
   fResonance        = kNoResonance;
   fDecayMode        = -1;
-  fHEDISChannel       = kHEDISNull;
+  fHEDISQrkChannel    = kHEDISQrkNull;
   fIsFinalQuarkEvent  = false;
   fFinalQuarkPdg      = 0;
   fIsFinalLeptonEvent = false;
@@ -180,7 +180,7 @@ void XclsTag::Copy(const XclsTag & xcls)
   fNPiMinus         = xcls.fNPiMinus;
   fResonance        = xcls.fResonance;
   fDecayMode        = xcls.fDecayMode;
-  fHEDISChannel       = xcls.fHEDISChannel;
+  fHEDISQrkChannel    = xcls.fHEDISQrkChannel;
   fIsFinalQuarkEvent  = xcls.fIsFinalQuarkEvent;
   fFinalQuarkPdg      = xcls.fFinalQuarkPdg;
   fIsFinalLeptonEvent = xcls.fIsFinalLeptonEvent;

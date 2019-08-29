@@ -1,3 +1,17 @@
+//____________________________________________________________________________
+/*
+ Copyright (c) 2003-2018, The GENIE Collaboration
+ For the full text of the license visit http://copyright.genie-mc.org
+ or see $GENIE/LICENSE
+
+ Author: Alfonso Garcia <alfonsog \at nikhef.nl>
+         NIKHEF
+
+ For the class documentation see the corresponding header file.
+
+*/
+//____________________________________________________________________________
+
 #include "Physics/HEDIS/EventGen/HEDISKinematicsGenerator.h"
 #include "Framework/Conventions/Controls.h"
 #include "Framework/Conventions/KineVar.h"
@@ -78,10 +92,11 @@ void HEDISKinematicsGenerator::ProcessEventRecord(GHepRecord * evrec) const
   Range1D_t xl = kps.Limits(kKVx);
   Range1D_t yl = kps.Limits(kKVy);
 
-  double xymin = fQ2min/2/M/Ev;
+  //-- x and y lower limit restrict by limits in SF tables 
+  double xymin = fQ2min/2/M/Ev;   // x*y = Q2/(2ME)
   if ( fXmin > xl.min ) xl.min = fXmin;
-  if ( xymin > xl.min ) xl.min = xymin;
-  if ( xymin > yl.min ) yl.min = xymin;
+  if ( xymin > xl.min ) xl.min = xymin;  //assuming y=1 -> xmin = Q2min/(2ME)
+  if ( xymin > yl.min ) yl.min = xymin;  //assuming x=1 -> xmin = Q2min/(2ME)
 
   double log10xmin = TMath::Log10(xl.min);  
   double log10xmax = TMath::Log10(xl.max); 
@@ -129,6 +144,7 @@ void HEDISKinematicsGenerator::ProcessEventRecord(GHepRecord * evrec) const
      //-- compute the cross section for current kinematics
      xsec = fXSecModel->XSec(interaction, kPSxyfE);
 
+     //-- jacobian account for the log10 sampling
      double J = TMath::Log(10.)*gx*TMath::Log(10.)*gy; 
 
      //-- decide whether to accept the current kinematics
@@ -175,7 +191,9 @@ double HEDISKinematicsGenerator::ComputeMaxXSec(
                                        const Interaction * interaction ) const
 {
 
-  if (!fMaxXsecIsAlreadyLoaded) LoadMaxXsecFromAscii();
+  // Max Xsec must be load the first time we call this method and not anymore.
+  // TODO: This might be removed in the future if Max Xsec are included in Splines.
+  if (!fMaxXsecIsLoad) LoadMaxXsecFromAscii();
 
   LOG("HEDISKinematics", pINFO)<< "Computing max xsec in allowed phase space";
   double max_xsec = 0.0;
@@ -184,7 +202,7 @@ double HEDISKinematicsGenerator::ComputeMaxXSec(
   double Ev  = init_state.ProbeE(kRfLab);
 
   int absnupdg = TMath::Abs(interaction->InitState().ProbePdg());
-  HEDISChannel_t chID = interaction->ExclTag().HEDISChannel();
+  HEDISQrkChannel_t chID = interaction->ExclTag().HEDISQrkChannel();
   max_xsec = fspl_max.at(chID).Spline.at(absnupdg)->Evaluate(Ev);
 
   int  nuc_pdgc = interaction->InitState().Tgt().HitNucPdg();
@@ -203,25 +221,29 @@ double HEDISKinematicsGenerator::ComputeMaxXSec(
 void HEDISKinematicsGenerator::LoadMaxXsecFromAscii() const
 {
 
+  // Check that Max Xsec directory exists
   if ( gSystem->AccessPathName( fMaxXsecDirName.c_str()) ) {
-    LOG("HEDISFormFactors", pERROR) << "Max Xsec directory does not exist...";
-    LOG("HEDISFormFactors", pERROR) << fMaxXsecDirName;
+    LOG("HEDISKinematics", pERROR) << "Max Xsec directory does not exist...";
+    LOG("HEDISKinematics", pERROR) << fMaxXsecDirName;
+    assert(0);
   }
 
+  // Load Max Xsec to Splines
   int absnupdg[3] = { 12, 14, 16 };
   for( int n=0; n<3; n++ ) {
-    for( int ch=1; ch<kHEDIS_numofchannels; ch++ ) {      
-      string filename = fMaxXsecDirName + "/Flvr" + std::to_string(absnupdg[n]) + "_" + HEDISChannel::AsString((HEDISChannel_t)ch) + ".dat";      
+    for( int ch=1; ch<kHEDISQrk_numofchannels; ch++ ) {      
+      string filename = fMaxXsecDirName + "/Flvr" + std::to_string(absnupdg[n]) + "_" + HEDISChannel::AsString((HEDISQrkChannel_t)ch) + ".dat";      
       if ( !gSystem->AccessPathName(filename.c_str()) ) {
         LOG("HEDISKinematics", pINFO)<< "Loading splines from: " << filename;
-        fspl_max[(HEDISChannel_t)ch].Spline[absnupdg[n]] = new Spline(filename,"","",false);
-        fspl_max[(HEDISChannel_t)ch].Spline[absnupdg[n]]->Multiply(fSafetyFactor);
+        fspl_max[(HEDISQrkChannel_t)ch].Spline[absnupdg[n]] = new Spline(filename,"","",false);
+        fspl_max[(HEDISQrkChannel_t)ch].Spline[absnupdg[n]]->Multiply(fSafetyFactor);
       }
     
     }
   }
 
-  fMaxXsecIsAlreadyLoaded = true;
+  // Change to true to make sure this method is called only once.
+  fMaxXsecIsLoad = true;
 
 }
 //___________________________________________________________________________
@@ -240,17 +262,6 @@ void HEDISKinematicsGenerator::Configure(string config)
 void HEDISKinematicsGenerator::LoadConfig(void)
 {
 
-  double dlogy;
-  double dlogx;
-  GetParamDef("DlogY", dlogy, 0.01 ) ;
-  GetParamDef("DlogX", dlogx, 0.01 ) ;
-
-  std::ostringstream sdlogy,sdlogx; 
-  sdlogy << dlogy;
-  sdlogx << dlogx;
-
-  fMaxXsecDirName = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/maxxsec/" + RunOpt::Instance()->Tune()->Name() + "_dx" + sdlogx.str() + "dy" + sdlogy.str();
-
   //-- Safety factor for the maximum differential cross section
   GetParamDef("MaxXSec-SafetyFactor", fSafetyFactor, 2. ) ;
   //-- Maximum allowed fractional cross section deviation from maxim cross
@@ -258,7 +269,48 @@ void HEDISKinematicsGenerator::LoadConfig(void)
   GetParamDef("MaxXSec-DiffTolerance", fMaxXSecDiffTolerance, 999999. ) ;
   assert(fMaxXSecDiffTolerance>=0);
 
-  GetParamDef("xGrid-Min",   fXmin, 1e-10 );
-  GetParamDef("Q2Grid-Min", fQ2min,   0.1 );
+  // The name of the directory in which SF tables are stored is need for two reasons.
+  // 1) To extract some information from the metafile about the limits of the tables
+  // 2) To get the name of the Max Xsec directory
+  string SFname;
+  GetParamDef("SF-name", SFname, string("") ) ;
+
+  string metaFile = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/sf/" + SFname + "/Inputs.txt";
+  // make sure meta files are available
+  LOG("HEDISKinematics", pDEBUG) << "Checking if file " << metaFile << " exists...";        
+  if ( gSystem->AccessPathName( metaFile.c_str()) ) {
+    LOG("HEDISKinematics", pERROR) << "File doesnt exist";        
+    LOG("HEDISKinematics", pERROR) << "HEDIS package requires precomputation of SF using gMakeStrucFunc";        
+    assert(0);
+  }
+
+  // From the metafile we need the minimum value of x and Q2 in the SF tables.
+  // They are used to restrict the sampling phase space for the kinematics.
+  std::ifstream meta_stream(metaFile.c_str(), std::ios::in);
+  string saux;
+  std::getline (meta_stream,saux); //# NX
+  std::getline (meta_stream,saux);
+  std::getline (meta_stream,saux); //# Xmin
+  std::getline (meta_stream,saux); fXmin = atof(saux.c_str());
+  std::getline (meta_stream,saux); //# NQ2
+  std::getline (meta_stream,saux);
+  std::getline (meta_stream,saux); //# Q2min
+  std::getline (meta_stream,saux); fQ2min = atof(saux.c_str());
+  meta_stream.close();
+
+  // The following information is needed to get the name of the Max Xsec directory.
+  // TODO: This might be removed in the future if Max Xsec are included in Splines.
+  double dlogy;
+  double dlogx;
+  GetParamDef("DlogY", dlogy, 0.01 ) ;
+  GetParamDef("DlogX", dlogx, 0.01 ) ;
+  std::ostringstream sdlogy,sdlogx; 
+  sdlogy << dlogy;
+  sdlogx << dlogx;
+
+  // Name Max Xsec directory. This shoud match the one generated by HEDISXSec.
+  fMaxXsecDirName = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/maxxsec/" + SFname + "_dx" + sdlogx.str() + "dy" + sdlogy.str();
+
+
 
 }

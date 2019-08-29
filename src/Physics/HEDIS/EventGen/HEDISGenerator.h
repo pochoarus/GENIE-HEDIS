@@ -1,3 +1,23 @@
+//____________________________________________________________________________
+/*!
+
+\class    genie::HEDISGenerator
+
+\brief    Generates the final state leptonic and hadronic system in v HEDIS 
+          interactions.
+          Is a concrete implementation of the EventRecordVisitorI interface.
+
+\author   Alfonso Garcia <alfonsog \at nikhef.nl>
+          NIKHEF
+
+\created  August 28, 2019
+
+\cpright  Copyright (c) 2003-2018, The GENIE Collaboration
+          For the full text of the license visit http://copyright.genie-mc.org
+          or see $GENIE/LICENSE
+*/
+//____________________________________________________________________________
+
 #ifndef _HEDIS_GENERATOR_H_
 #define _HEDIS_GENERATOR_H_
 
@@ -11,6 +31,10 @@ namespace genie {
 
 class HadronizationModelI;
 
+// This class has been created to perform several operations with long 
+// doubles. It is needed in HEDIS because the kinematics of the outgoing
+// particles can be so large that the on-shell feature is not fulfilled 
+// many times due to the precission of double. 
 class LongLorentzVector {
 
   public :
@@ -93,8 +117,10 @@ private:
 
   mutable TPythia6 *             fPythia;     
 
-  bool   fPromptPythiaList;
-  double fpT;
+  bool   fPromptPythiaList;   // Print the list of particles from PYTHIA
+  double fPrimordialKT;       // Width of Gaussian distribution for the primordial transverse momentum kT of partons in the nucleon.
+  double fRemnantPT;          // Width of Gaussian distribution in transverse momentum when a non-trivial target remnant is split into two particles
+  double fMinESinglet;        // It is, with quark masses added, used to define the minimum allowable energy of a colour-singlet parton system.
 
 };
 

@@ -1,3 +1,17 @@
+//____________________________________________________________________________
+/*
+ Copyright (c) 2003-2018, The GENIE Collaboration
+ For the full text of the license visit http://copyright.genie-mc.org
+ or see $GENIE/LICENSE
+
+ Author: Alfonso Garcia <alfonsog \at nikhef.nl>
+         NIKHEF
+
+ For the class documentation see the corresponding header file.
+
+*/
+//____________________________________________________________________________
+
 #include "Physics/HEDIS/EventGen/HEDISInteractionListGenerator.h"
 #include "Framework/EventGen/InteractionList.h"
 #include "Framework/Interaction/Interaction.h"
@@ -42,132 +56,132 @@ InteractionList * HEDISInteractionListGenerator::CreateInteractionList(
 
   const int n_nucc_channels = 36;
   const int n_nunc_channels = 24;
-  HEDISChannel_t nucc_channels[n_nucc_channels] = {kHEDISNull};
-  HEDISChannel_t nunc_channels[n_nunc_channels] = {kHEDISNull};
+  HEDISQrkChannel_t nucc_channels[n_nucc_channels] = {kHEDISQrkNull};
+  HEDISQrkChannel_t nunc_channels[n_nunc_channels] = {kHEDISQrkNull};
 
   if( pdg::IsNeutrino(nupdg) ) {    
-    nucc_channels[0]  = kHEDIS_v_cc_p_dval_u,
-    nucc_channels[1]  = kHEDIS_v_cc_p_dval_c,
-    nucc_channels[2]  = kHEDIS_v_cc_p_dval_t;
-    nucc_channels[3]  = kHEDIS_v_cc_p_dsea_u;
-    nucc_channels[4]  = kHEDIS_v_cc_p_dsea_c;
-    nucc_channels[5]  = kHEDIS_v_cc_p_dsea_t;
-    nucc_channels[6]  = kHEDIS_v_cc_p_ssea_u;
-    nucc_channels[7]  = kHEDIS_v_cc_p_ssea_c;
-    nucc_channels[8]  = kHEDIS_v_cc_p_ssea_t;
-    nucc_channels[9]  = kHEDIS_v_cc_p_bsea_u;
-    nucc_channels[10] = kHEDIS_v_cc_p_bsea_c;
-    nucc_channels[11] = kHEDIS_v_cc_p_bsea_t;
-    nucc_channels[12] = kHEDIS_v_cc_p_ubarsea_dbar;
-    nucc_channels[13] = kHEDIS_v_cc_p_ubarsea_sbar;
-    nucc_channels[14] = kHEDIS_v_cc_p_ubarsea_bbar;
-    nucc_channels[15] = kHEDIS_v_cc_p_cbarsea_dbar;
-    nucc_channels[16] = kHEDIS_v_cc_p_cbarsea_sbar;
-    nucc_channels[17] = kHEDIS_v_cc_p_cbarsea_bbar;
-    nucc_channels[18] = kHEDIS_v_cc_n_dval_u;
-    nucc_channels[19] = kHEDIS_v_cc_n_dval_c;
-    nucc_channels[20] = kHEDIS_v_cc_n_dval_t;
-    nucc_channels[21] = kHEDIS_v_cc_n_dsea_u;
-    nucc_channels[22] = kHEDIS_v_cc_n_dsea_c;
-    nucc_channels[23] = kHEDIS_v_cc_n_dsea_t;
-    nucc_channels[24] = kHEDIS_v_cc_n_ssea_u;
-    nucc_channels[25] = kHEDIS_v_cc_n_ssea_c;
-    nucc_channels[26] = kHEDIS_v_cc_n_ssea_t;
-    nucc_channels[27] = kHEDIS_v_cc_n_bsea_u;
-    nucc_channels[28] = kHEDIS_v_cc_n_bsea_c;
-    nucc_channels[29] = kHEDIS_v_cc_n_bsea_t;
-    nucc_channels[30] = kHEDIS_v_cc_n_ubarsea_dbar;
-    nucc_channels[31] = kHEDIS_v_cc_n_ubarsea_sbar;
-    nucc_channels[32] = kHEDIS_v_cc_n_ubarsea_bbar;
-    nucc_channels[33] = kHEDIS_v_cc_n_cbarsea_dbar;
-    nucc_channels[34] = kHEDIS_v_cc_n_cbarsea_sbar;
-    nucc_channels[35] = kHEDIS_v_cc_n_cbarsea_bbar;
-    nunc_channels[0]  = kHEDIS_v_nc_p_dval_d;
-    nunc_channels[1]  = kHEDIS_v_nc_p_uval_u;
-    nunc_channels[2]  = kHEDIS_v_nc_p_dsea_d;
-    nunc_channels[3]  = kHEDIS_v_nc_p_usea_u;
-    nunc_channels[4]  = kHEDIS_v_nc_p_ssea_s;
-    nunc_channels[5]  = kHEDIS_v_nc_p_csea_c;
-    nunc_channels[6]  = kHEDIS_v_nc_p_bsea_b;
-    nunc_channels[7]  = kHEDIS_v_nc_p_dbarsea_dbar;
-    nunc_channels[8]  = kHEDIS_v_nc_p_ubarsea_ubar;
-    nunc_channels[9]  = kHEDIS_v_nc_p_sbarsea_sbar;
-    nunc_channels[10] = kHEDIS_v_nc_p_cbarsea_cbar;
-    nunc_channels[11] = kHEDIS_v_nc_p_bbarsea_bbar;
-    nunc_channels[12] = kHEDIS_v_nc_n_dval_d;
-    nunc_channels[13] = kHEDIS_v_nc_n_uval_u;
-    nunc_channels[14] = kHEDIS_v_nc_n_dsea_d;
-    nunc_channels[15] = kHEDIS_v_nc_n_usea_u;
-    nunc_channels[16] = kHEDIS_v_nc_n_ssea_s;
-    nunc_channels[17] = kHEDIS_v_nc_n_csea_c;
-    nunc_channels[18] = kHEDIS_v_nc_n_bsea_b;
-    nunc_channels[19] = kHEDIS_v_nc_n_dbarsea_dbar;
-    nunc_channels[20] = kHEDIS_v_nc_n_ubarsea_ubar;
-    nunc_channels[21] = kHEDIS_v_nc_n_sbarsea_sbar;
-    nunc_channels[22] = kHEDIS_v_nc_n_cbarsea_cbar;
-    nunc_channels[23] = kHEDIS_v_nc_n_bbarsea_bbar;
+    nucc_channels[0]  = kHEDISQrk_v_cc_p_dval_u,
+    nucc_channels[1]  = kHEDISQrk_v_cc_p_dval_c,
+    nucc_channels[2]  = kHEDISQrk_v_cc_p_dval_t;
+    nucc_channels[3]  = kHEDISQrk_v_cc_p_dsea_u;
+    nucc_channels[4]  = kHEDISQrk_v_cc_p_dsea_c;
+    nucc_channels[5]  = kHEDISQrk_v_cc_p_dsea_t;
+    nucc_channels[6]  = kHEDISQrk_v_cc_p_ssea_u;
+    nucc_channels[7]  = kHEDISQrk_v_cc_p_ssea_c;
+    nucc_channels[8]  = kHEDISQrk_v_cc_p_ssea_t;
+    nucc_channels[9]  = kHEDISQrk_v_cc_p_bsea_u;
+    nucc_channels[10] = kHEDISQrk_v_cc_p_bsea_c;
+    nucc_channels[11] = kHEDISQrk_v_cc_p_bsea_t;
+    nucc_channels[12] = kHEDISQrk_v_cc_p_ubarsea_dbar;
+    nucc_channels[13] = kHEDISQrk_v_cc_p_ubarsea_sbar;
+    nucc_channels[14] = kHEDISQrk_v_cc_p_ubarsea_bbar;
+    nucc_channels[15] = kHEDISQrk_v_cc_p_cbarsea_dbar;
+    nucc_channels[16] = kHEDISQrk_v_cc_p_cbarsea_sbar;
+    nucc_channels[17] = kHEDISQrk_v_cc_p_cbarsea_bbar;
+    nucc_channels[18] = kHEDISQrk_v_cc_n_dval_u;
+    nucc_channels[19] = kHEDISQrk_v_cc_n_dval_c;
+    nucc_channels[20] = kHEDISQrk_v_cc_n_dval_t;
+    nucc_channels[21] = kHEDISQrk_v_cc_n_dsea_u;
+    nucc_channels[22] = kHEDISQrk_v_cc_n_dsea_c;
+    nucc_channels[23] = kHEDISQrk_v_cc_n_dsea_t;
+    nucc_channels[24] = kHEDISQrk_v_cc_n_ssea_u;
+    nucc_channels[25] = kHEDISQrk_v_cc_n_ssea_c;
+    nucc_channels[26] = kHEDISQrk_v_cc_n_ssea_t;
+    nucc_channels[27] = kHEDISQrk_v_cc_n_bsea_u;
+    nucc_channels[28] = kHEDISQrk_v_cc_n_bsea_c;
+    nucc_channels[29] = kHEDISQrk_v_cc_n_bsea_t;
+    nucc_channels[30] = kHEDISQrk_v_cc_n_ubarsea_dbar;
+    nucc_channels[31] = kHEDISQrk_v_cc_n_ubarsea_sbar;
+    nucc_channels[32] = kHEDISQrk_v_cc_n_ubarsea_bbar;
+    nucc_channels[33] = kHEDISQrk_v_cc_n_cbarsea_dbar;
+    nucc_channels[34] = kHEDISQrk_v_cc_n_cbarsea_sbar;
+    nucc_channels[35] = kHEDISQrk_v_cc_n_cbarsea_bbar;
+    nunc_channels[0]  = kHEDISQrk_v_nc_p_dval_d;
+    nunc_channels[1]  = kHEDISQrk_v_nc_p_uval_u;
+    nunc_channels[2]  = kHEDISQrk_v_nc_p_dsea_d;
+    nunc_channels[3]  = kHEDISQrk_v_nc_p_usea_u;
+    nunc_channels[4]  = kHEDISQrk_v_nc_p_ssea_s;
+    nunc_channels[5]  = kHEDISQrk_v_nc_p_csea_c;
+    nunc_channels[6]  = kHEDISQrk_v_nc_p_bsea_b;
+    nunc_channels[7]  = kHEDISQrk_v_nc_p_dbarsea_dbar;
+    nunc_channels[8]  = kHEDISQrk_v_nc_p_ubarsea_ubar;
+    nunc_channels[9]  = kHEDISQrk_v_nc_p_sbarsea_sbar;
+    nunc_channels[10] = kHEDISQrk_v_nc_p_cbarsea_cbar;
+    nunc_channels[11] = kHEDISQrk_v_nc_p_bbarsea_bbar;
+    nunc_channels[12] = kHEDISQrk_v_nc_n_dval_d;
+    nunc_channels[13] = kHEDISQrk_v_nc_n_uval_u;
+    nunc_channels[14] = kHEDISQrk_v_nc_n_dsea_d;
+    nunc_channels[15] = kHEDISQrk_v_nc_n_usea_u;
+    nunc_channels[16] = kHEDISQrk_v_nc_n_ssea_s;
+    nunc_channels[17] = kHEDISQrk_v_nc_n_csea_c;
+    nunc_channels[18] = kHEDISQrk_v_nc_n_bsea_b;
+    nunc_channels[19] = kHEDISQrk_v_nc_n_dbarsea_dbar;
+    nunc_channels[20] = kHEDISQrk_v_nc_n_ubarsea_ubar;
+    nunc_channels[21] = kHEDISQrk_v_nc_n_sbarsea_sbar;
+    nunc_channels[22] = kHEDISQrk_v_nc_n_cbarsea_cbar;
+    nunc_channels[23] = kHEDISQrk_v_nc_n_bbarsea_bbar;
   } 
   else if ( pdg::IsAntiNeutrino(nupdg) ) {
-    nucc_channels[0]  = kHEDIS_vbar_cc_p_uval_d;
-    nucc_channels[1]  = kHEDIS_vbar_cc_p_uval_s;
-    nucc_channels[2]  = kHEDIS_vbar_cc_p_uval_b;
-    nucc_channels[3]  = kHEDIS_vbar_cc_p_usea_d;
-    nucc_channels[4]  = kHEDIS_vbar_cc_p_usea_s;
-    nucc_channels[5]  = kHEDIS_vbar_cc_p_usea_b;
-    nucc_channels[6]  = kHEDIS_vbar_cc_p_csea_d;
-    nucc_channels[7]  = kHEDIS_vbar_cc_p_csea_s;
-    nucc_channels[8]  = kHEDIS_vbar_cc_p_csea_b;
-    nucc_channels[9]  = kHEDIS_vbar_cc_p_dbarsea_ubar;
-    nucc_channels[10] = kHEDIS_vbar_cc_p_dbarsea_cbar;
-    nucc_channels[11] = kHEDIS_vbar_cc_p_dbarsea_tbar;
-    nucc_channels[12] = kHEDIS_vbar_cc_p_sbarsea_ubar;
-    nucc_channels[13] = kHEDIS_vbar_cc_p_sbarsea_cbar;
-    nucc_channels[14] = kHEDIS_vbar_cc_p_sbarsea_tbar;
-    nucc_channels[15] = kHEDIS_vbar_cc_p_bbarsea_ubar;
-    nucc_channels[16] = kHEDIS_vbar_cc_p_bbarsea_cbar;
-    nucc_channels[17] = kHEDIS_vbar_cc_p_bbarsea_tbar;
-    nucc_channels[18] = kHEDIS_vbar_cc_n_uval_d;
-    nucc_channels[19] = kHEDIS_vbar_cc_n_uval_s;
-    nucc_channels[20] = kHEDIS_vbar_cc_n_uval_b;
-    nucc_channels[21] = kHEDIS_vbar_cc_n_usea_d;
-    nucc_channels[22] = kHEDIS_vbar_cc_n_usea_s;
-    nucc_channels[23] = kHEDIS_vbar_cc_n_usea_b;
-    nucc_channels[24] = kHEDIS_vbar_cc_n_csea_d;
-    nucc_channels[25] = kHEDIS_vbar_cc_n_csea_s;
-    nucc_channels[26] = kHEDIS_vbar_cc_n_csea_b;
-    nucc_channels[27] = kHEDIS_vbar_cc_n_dbarsea_ubar;
-    nucc_channels[28] = kHEDIS_vbar_cc_n_dbarsea_cbar;
-    nucc_channels[29] = kHEDIS_vbar_cc_n_dbarsea_tbar;
-    nucc_channels[30] = kHEDIS_vbar_cc_n_sbarsea_ubar;
-    nucc_channels[31] = kHEDIS_vbar_cc_n_sbarsea_cbar;
-    nucc_channels[32] = kHEDIS_vbar_cc_n_sbarsea_tbar;
-    nucc_channels[33] = kHEDIS_vbar_cc_n_bbarsea_ubar;
-    nucc_channels[34] = kHEDIS_vbar_cc_n_bbarsea_cbar;
-    nucc_channels[35] = kHEDIS_vbar_cc_n_bbarsea_tbar;
-    nunc_channels[0]  = kHEDIS_vbar_nc_p_dval_d;
-    nunc_channels[1]  = kHEDIS_vbar_nc_p_uval_u;
-    nunc_channels[2]  = kHEDIS_vbar_nc_p_dsea_d;
-    nunc_channels[3]  = kHEDIS_vbar_nc_p_usea_u;
-    nunc_channels[4]  = kHEDIS_vbar_nc_p_ssea_s;
-    nunc_channels[5]  = kHEDIS_vbar_nc_p_csea_c;
-    nunc_channels[6]  = kHEDIS_vbar_nc_p_bsea_b;
-    nunc_channels[7]  = kHEDIS_vbar_nc_p_dbarsea_dbar;
-    nunc_channels[8]  = kHEDIS_vbar_nc_p_ubarsea_ubar;
-    nunc_channels[9]  = kHEDIS_vbar_nc_p_sbarsea_sbar;
-    nunc_channels[10] = kHEDIS_vbar_nc_p_cbarsea_cbar;
-    nunc_channels[11] = kHEDIS_vbar_nc_p_bbarsea_bbar;
-    nunc_channels[12] = kHEDIS_vbar_nc_n_dval_d;
-    nunc_channels[13] = kHEDIS_vbar_nc_n_uval_u;
-    nunc_channels[14] = kHEDIS_vbar_nc_n_dsea_d;
-    nunc_channels[15] = kHEDIS_vbar_nc_n_usea_u;
-    nunc_channels[16] = kHEDIS_vbar_nc_n_ssea_s;
-    nunc_channels[17] = kHEDIS_vbar_nc_n_csea_c;
-    nunc_channels[18] = kHEDIS_vbar_nc_n_bsea_b;
-    nunc_channels[19] = kHEDIS_vbar_nc_n_dbarsea_dbar;
-    nunc_channels[20] = kHEDIS_vbar_nc_n_ubarsea_ubar;
-    nunc_channels[21] = kHEDIS_vbar_nc_n_sbarsea_sbar;
-    nunc_channels[22] = kHEDIS_vbar_nc_n_cbarsea_cbar;
-    nunc_channels[23] = kHEDIS_vbar_nc_n_bbarsea_bbar;
+    nucc_channels[0]  = kHEDISQrk_vbar_cc_p_uval_d;
+    nucc_channels[1]  = kHEDISQrk_vbar_cc_p_uval_s;
+    nucc_channels[2]  = kHEDISQrk_vbar_cc_p_uval_b;
+    nucc_channels[3]  = kHEDISQrk_vbar_cc_p_usea_d;
+    nucc_channels[4]  = kHEDISQrk_vbar_cc_p_usea_s;
+    nucc_channels[5]  = kHEDISQrk_vbar_cc_p_usea_b;
+    nucc_channels[6]  = kHEDISQrk_vbar_cc_p_csea_d;
+    nucc_channels[7]  = kHEDISQrk_vbar_cc_p_csea_s;
+    nucc_channels[8]  = kHEDISQrk_vbar_cc_p_csea_b;
+    nucc_channels[9]  = kHEDISQrk_vbar_cc_p_dbarsea_ubar;
+    nucc_channels[10] = kHEDISQrk_vbar_cc_p_dbarsea_cbar;
+    nucc_channels[11] = kHEDISQrk_vbar_cc_p_dbarsea_tbar;
+    nucc_channels[12] = kHEDISQrk_vbar_cc_p_sbarsea_ubar;
+    nucc_channels[13] = kHEDISQrk_vbar_cc_p_sbarsea_cbar;
+    nucc_channels[14] = kHEDISQrk_vbar_cc_p_sbarsea_tbar;
+    nucc_channels[15] = kHEDISQrk_vbar_cc_p_bbarsea_ubar;
+    nucc_channels[16] = kHEDISQrk_vbar_cc_p_bbarsea_cbar;
+    nucc_channels[17] = kHEDISQrk_vbar_cc_p_bbarsea_tbar;
+    nucc_channels[18] = kHEDISQrk_vbar_cc_n_uval_d;
+    nucc_channels[19] = kHEDISQrk_vbar_cc_n_uval_s;
+    nucc_channels[20] = kHEDISQrk_vbar_cc_n_uval_b;
+    nucc_channels[21] = kHEDISQrk_vbar_cc_n_usea_d;
+    nucc_channels[22] = kHEDISQrk_vbar_cc_n_usea_s;
+    nucc_channels[23] = kHEDISQrk_vbar_cc_n_usea_b;
+    nucc_channels[24] = kHEDISQrk_vbar_cc_n_csea_d;
+    nucc_channels[25] = kHEDISQrk_vbar_cc_n_csea_s;
+    nucc_channels[26] = kHEDISQrk_vbar_cc_n_csea_b;
+    nucc_channels[27] = kHEDISQrk_vbar_cc_n_dbarsea_ubar;
+    nucc_channels[28] = kHEDISQrk_vbar_cc_n_dbarsea_cbar;
+    nucc_channels[29] = kHEDISQrk_vbar_cc_n_dbarsea_tbar;
+    nucc_channels[30] = kHEDISQrk_vbar_cc_n_sbarsea_ubar;
+    nucc_channels[31] = kHEDISQrk_vbar_cc_n_sbarsea_cbar;
+    nucc_channels[32] = kHEDISQrk_vbar_cc_n_sbarsea_tbar;
+    nucc_channels[33] = kHEDISQrk_vbar_cc_n_bbarsea_ubar;
+    nucc_channels[34] = kHEDISQrk_vbar_cc_n_bbarsea_cbar;
+    nucc_channels[35] = kHEDISQrk_vbar_cc_n_bbarsea_tbar;
+    nunc_channels[0]  = kHEDISQrk_vbar_nc_p_dval_d;
+    nunc_channels[1]  = kHEDISQrk_vbar_nc_p_uval_u;
+    nunc_channels[2]  = kHEDISQrk_vbar_nc_p_dsea_d;
+    nunc_channels[3]  = kHEDISQrk_vbar_nc_p_usea_u;
+    nunc_channels[4]  = kHEDISQrk_vbar_nc_p_ssea_s;
+    nunc_channels[5]  = kHEDISQrk_vbar_nc_p_csea_c;
+    nunc_channels[6]  = kHEDISQrk_vbar_nc_p_bsea_b;
+    nunc_channels[7]  = kHEDISQrk_vbar_nc_p_dbarsea_dbar;
+    nunc_channels[8]  = kHEDISQrk_vbar_nc_p_ubarsea_ubar;
+    nunc_channels[9]  = kHEDISQrk_vbar_nc_p_sbarsea_sbar;
+    nunc_channels[10] = kHEDISQrk_vbar_nc_p_cbarsea_cbar;
+    nunc_channels[11] = kHEDISQrk_vbar_nc_p_bbarsea_bbar;
+    nunc_channels[12] = kHEDISQrk_vbar_nc_n_dval_d;
+    nunc_channels[13] = kHEDISQrk_vbar_nc_n_uval_u;
+    nunc_channels[14] = kHEDISQrk_vbar_nc_n_dsea_d;
+    nunc_channels[15] = kHEDISQrk_vbar_nc_n_usea_u;
+    nunc_channels[16] = kHEDISQrk_vbar_nc_n_ssea_s;
+    nunc_channels[17] = kHEDISQrk_vbar_nc_n_csea_c;
+    nunc_channels[18] = kHEDISQrk_vbar_nc_n_bsea_b;
+    nunc_channels[19] = kHEDISQrk_vbar_nc_n_dbarsea_dbar;
+    nunc_channels[20] = kHEDISQrk_vbar_nc_n_ubarsea_ubar;
+    nunc_channels[21] = kHEDISQrk_vbar_nc_n_sbarsea_sbar;
+    nunc_channels[22] = kHEDISQrk_vbar_nc_n_cbarsea_cbar;
+    nunc_channels[23] = kHEDISQrk_vbar_nc_n_bbarsea_bbar;
   } 
   else {
      LOG("IntLst", pWARN)
@@ -220,7 +234,7 @@ InteractionList * HEDISInteractionListGenerator::CreateInteractionList(
 }
 //___________________________________________________________________________
 void HEDISInteractionListGenerator::AddFinalStateInfo(
-                       Interaction * interaction, HEDISChannel_t hedischan) const
+                       Interaction * interaction, HEDISQrkChannel_t hedischan) const
 {
 
   bool iq_sea = HEDISChannel::HitQuarkSea(hedischan);
@@ -232,7 +246,7 @@ void HEDISInteractionListGenerator::AddFinalStateInfo(
 
   XclsTag exclusive_tag;
   exclusive_tag.SetFinalQuark (fq_pdg);
-  exclusive_tag.SetHEDISChannel (hedischan);
+  exclusive_tag.SetHEDISQrkChannel (hedischan);
   interaction->SetExclTag(exclusive_tag);
 
 }

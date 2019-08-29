@@ -1,3 +1,17 @@
+//____________________________________________________________________________
+/*
+ Copyright (c) 2003-2018, The GENIE Collaboration
+ For the full text of the license visit http://copyright.genie-mc.org
+ or see $GENIE/LICENSE
+
+ Author: Alfonso Garcia <alfonsog \at nikhef.nl>
+         NIKHEF
+
+ For the class documentation see the corresponding header file.
+
+*/
+//____________________________________________________________________________
+
 #include "Physics/HEDIS/XSection/HEDISPXSec.h"
 #include "Physics/XSectionIntegration/XSecIntegratorI.h"
 #include "Framework/Conventions/Constants.h"
@@ -39,39 +53,49 @@ double HEDISPXSec::XSec(
 
   if(! this -> ValidKinematics (interaction) ) return 0.;
 
-  HEDISFormFactors * formfactors = HEDISFormFactors::Instance(fLHAPDFmember,fNLO,fScheme,fQrkThres,fNX,fXmin,fNQ2,fQ2min,fQ2max,fCKM,fMassZ,fMassW,fSin2ThW);
+  // Load SF tables 
+  HEDISStrucFunc * sf_tbl = HEDISStrucFunc::Instance(fSFname,fSFNLO,fSFNX,fSFXmin,fSFNQ2,fSFQ2min,fSFQ2max);
 
   const Kinematics   & kinematics = interaction -> Kine();
   double x     = kinematics.x();
   double Q2    = kinematics.Q2();
+  double W     = kinematics.W();
 
-  if ( x<fXmin   ) return 0.;  
-  if ( Q2<fQ2min ) return 0.;
-  if ( Q2>fQ2max ) return 0.;
+  // Xsec is zero for regions outside the range in which SF have ben computed
+  if ( x<fSFXmin   ) return 0.;  
+  if ( Q2<fSFQ2min ) return 0.;
+  if ( Q2>fSFQ2max ) return 0.;
+  // W limits are computed using kinematics assumption.
+  // The lower limit is tuneable because hadronization might have issues at low W (as in PYTHIA6).
+  // To be consistent the cross section must be computed in the W range where the events are generated.
+  if ( W<fWmin     ) return 0.;
 
   const InitialState & init_state = interaction -> InitState();
 
-  HEDISChannel_t ch = interaction->ExclTag().HEDISChannel();
+  HEDISQrkChannel_t ch = interaction->ExclTag().HEDISQrkChannel();
   double E     = init_state.ProbeE(kRfLab);
   double Mnuc  = init_state.Tgt().HitNucMass();
-  double Mlep2 = TMath::Power(interaction->FSPrimLepton()->Mass(),2);
   double y     = kinematics.y();
-  FF_xQ2 ff = formfactors->EvalFFQrkLO( ch, x, Q2 );
 
-  double xsec = ds_dxdy( ff, E, Mnuc, Mlep2, x, y );
+  // Get F1,F2,F3 for particular quark channel and compute differential xsec
+  SF_xQ2 sf = sf_tbl->EvalQrkSFLO( ch, x, Q2 );
+  double xsec = ds_dxdy( sf, x, y );
 
-#ifdef __GENIE_APFEL_ENABLED__
-  if (fNLO && xsec>0.) {
-    HEDISNuclChannel_t nuclch  = HEDISChannel::HEDISNuclChannel(ch);
-    FF_xQ2 fflo  = formfactors->EvalNuclFFLO(nuclch,x,Q2);
-    FF_xQ2 ffnlo = formfactors->EvalNuclFFNLO(nuclch,x,Q2);
-    double lo  = ds_dxdy( fflo, E, Mnuc, Mlep2, x, y );
+  // If NLO is enable we compute sigma_NLO/sigma_LO. Then the quark xsec 
+  // is multiplied by this ratio.
+  // This is done because at NLO we can only compute the nucleon xsec. But
+  // for the hadronization we need the different quark contributions.
+  // This could be avoid if a NLO parton showering is introduced.
+  if (fSFNLO && xsec>0.) {
+    HEDISNucChannel_t nucch  = HEDISChannel::HEDISNucChannel(ch);
+    SF_xQ2 sflo  = sf_tbl->EvalNucSFLO(nucch,x,Q2);
+    SF_xQ2 sfnlo = sf_tbl->EvalNucSFNLO(nucch,x,Q2);
+    double lo  = ds_dxdy( sflo, x, y );
     if (lo>0.) {
-      double nlo = ds_dxdy( ffnlo, E, Mnuc, Mlep2, x, y );
+      double nlo = ds_dxdy( sfnlo, x, y );
       xsec *= nlo / lo;
     }
   }
-#endif
 
   // Compute the front factor
   double propagator = 0;
@@ -96,23 +120,18 @@ double HEDISPXSec::XSec(
 
 }
 //____________________________________________________________________________
-double HEDISPXSec::ds_dxdy(FF_xQ2 ff, double e, double mt, double ml2, double x, double y ) const
+double HEDISPXSec::ds_dxdy(SF_xQ2 sf, double x, double y ) const
 {
 
-    //double term1 = y * ( x*y + ml2/2/e/mt );
-    //double term2 = ( 1 - y - mt*x*y/2/e - ml2/4/e/e );
-    //double term3 = sgn_t3 * (x*y*(1-y/2) - y*ml2/4/mt/e);
-    //double term4 = x*y*ml2/2/mt/e + ml2*ml2/4/mt/mt/e/e;
-    //double term5 = -1.*ml2/2/mt/e;
-
+    // We neglect F4 and F5 and higher order terms.
     double term1 = y * ( x*y );
     double term2 = ( 1 - y );
     double term3 = ( x*y*(1-y/2) );
 
-    LOG("HEDISPXSec", pDEBUG) << ff.F1 << "  " << ff.F2 << "  " << ff.F3;
-    LOG("HEDISPXSec", pDEBUG) << term1*ff.F1 + term2*ff.F2 + term3*ff.F3;
+    LOG("HEDISPXSec", pDEBUG) << sf.F1 << "  " << sf.F2 << "  " << sf.F3;
+    LOG("HEDISPXSec", pDEBUG) << term1*sf.F1 + term2*sf.F2 + term3*sf.F3;
 
-    return fmax( term1*ff.F1 + term2*ff.F2 + term3*ff.F3 , 0.);
+    return fmax( term1*sf.F1 + term2*sf.F2 + term3*sf.F3 , 0.);
 
 }
 //____________________________________________________________________________
@@ -161,37 +180,72 @@ void HEDISPXSec::LoadConfig(void)
   fXSecIntegrator = dynamic_cast<const XSecIntegratorI *> (this->SubAlg("XSec-Integrator"));
   assert(fXSecIntegrator);
 
-  GetParam("CKM-Vud", fCKM[0]);
-  GetParam("CKM-Vus", fCKM[1]);
-  GetParam("CKM-Vub", fCKM[2]);
-  GetParam("CKM-Vcd", fCKM[3]);
-  GetParam("CKM-Vcs", fCKM[4]);
-  GetParam("CKM-Vcb", fCKM[5]);
-  GetParam("CKM-Vtd", fCKM[6]);
-  GetParam("CKM-Vts", fCKM[7]);
-  GetParam("CKM-Vtb", fCKM[8]);
+  // Minimum value of W (typically driven by hadronization limitation)
+  GetParamDef("W-Min",    fWmin, 1e-10 );
+  LOG("HEDISXSec", pDEBUG) << "fWmin: " << fWmin;
 
-  for (int i=0; i<9; i++) LOG("HEDISPXSec", pERROR) << "CKM" << i << " = " << fCKM[i];
+  // Name of the directory where SF tables are saved. 
+  // Then some information from the metafile must be extracted to compute the xsec.
+  GetParamDef("SF-name", fSFname, string("") ) ;
+  fSFname = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/sf/" + fSFname;
 
-  GetParamDef("LHAPDF-member", fLHAPDFmember, string("") ) ;
-  GetParamDef("Is-NLO", fNLO, false ) ;
-  GetParamDef("Scheme", fScheme, string("") ) ;
-  GetParamDef("Quark-Threshold", fQrkThres, 0 ) ;
-  GetParamDef("MassW", fMassW, kMw ) ;
-  GetParamDef("MassZ", fMassZ, kMz ) ;
-  GetParam("WeinbergAngle", fSin2ThW) ;
-  GetParamDef("Rho", fRho, 0. ) ;
+  string metaFile = fSFname + "/Inputs.txt";
+  // make sure meta files are available
+  LOG("HEDISPXSec", pDEBUG) << "Checking if file " << metaFile << " exists...";        
+  if ( gSystem->AccessPathName( metaFile.c_str()) ) {
+    LOG("HEDISPXSec", pERROR) << "File doesnt exist";        
+    LOG("HEDISPXSec", pERROR) << "HEDIS package requires precomputation of SF using gMakeStrucFunc";        
+    assert(0);
+  }
 
-  if (fSin2ThW==0.) fSin2ThW = 1.-fMassW*fMassW/fMassZ/fMassZ/(1+fRho) ;
-  else              fSin2ThW = TMath::Power(TMath::Sin(fSin2ThW),2);
+  std::ifstream meta_stream(metaFile.c_str(), std::ios::in);
+  string saux;
+  std::getline (meta_stream,saux); //# NX
+  std::getline (meta_stream,saux); fSFNX = atoi(saux.c_str());
+  std::getline (meta_stream,saux); //# Xmin
+  std::getline (meta_stream,saux); fSFXmin = atof(saux.c_str());
+  std::getline (meta_stream,saux); //# NQ2
+  std::getline (meta_stream,saux); fSFNQ2 = atoi(saux.c_str());
+  std::getline (meta_stream,saux); //# Q2min
+  std::getline (meta_stream,saux); fSFQ2min = atof(saux.c_str());
+  std::getline (meta_stream,saux); //# Q2max
+  std::getline (meta_stream,saux); fSFQ2max = atof(saux.c_str());
+  std::getline (meta_stream,saux); //# LHAPDF member
+  std::getline (meta_stream,saux);
+  std::getline (meta_stream,saux); //# Mass Z
+  std::getline (meta_stream,saux); fMassZ = atof(saux.c_str());
+  std::getline (meta_stream,saux); //# Mass W
+  std::getline (meta_stream,saux); fMassW = atof(saux.c_str());
+  std::getline (meta_stream,saux); //# Mass W
+  std::getline (meta_stream,saux); fRho = atof(saux.c_str());
+  std::getline (meta_stream,saux); //# Sin2ThW
+  std::getline (meta_stream,saux); 
+  std::getline (meta_stream,saux); //# Quark threshold
+  std::getline (meta_stream,saux);
+  std::getline (meta_stream,saux); //# CKM
+  std::getline (meta_stream,saux); 
+  std::getline (meta_stream,saux); 
+  std::getline (meta_stream,saux); 
+  std::getline (meta_stream,saux); 
+  std::getline (meta_stream,saux); 
+  std::getline (meta_stream,saux); 
+  std::getline (meta_stream,saux); 
+  std::getline (meta_stream,saux); 
+  std::getline (meta_stream,saux); 
+  std::getline (meta_stream,saux); //# Mass quarks
+  std::getline (meta_stream,saux); 
+  std::getline (meta_stream,saux); 
+  std::getline (meta_stream,saux); 
+  std::getline (meta_stream,saux); 
+  std::getline (meta_stream,saux); 
+  std::getline (meta_stream,saux); 
+  std::getline (meta_stream,saux); //#NLO
+  std::getline (meta_stream,saux); fSFNLO = (bool)atoi(saux.c_str());
+  if (fSFNLO) {
+    std::getline (meta_stream,saux); //# Mass scheme
+    std::getline (meta_stream,saux);
+  }
+  meta_stream.close();
 
-  LOG("HEDISPXSec", pERROR) << "fSin2ThW = " << fSin2ThW;
-
-
-  GetParamDef("NGridX",  fNX,  100 );
-  GetParamDef("NGridQ2", fNQ2, 100 );
-  GetParamDef("XGrid-Min",    fXmin, 1e-10 );
-  GetParamDef("Q2Grid-Min",  fQ2min,   0.1 );
-  GetParamDef("Q2Grid-Max",  fQ2max,  1e10 );
 
 }

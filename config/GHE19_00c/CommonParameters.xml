@@ -2,37 +2,12 @@
 
 <common_param_list>
 
+
   <param_set name="Tunable">
-    <param type="string" name="LHAPDF-member">                           cteq6 </param>
-    <param type="bool"   name="Is-NLO">                                  false </param>
-    <param type="string" name="Scheme">                                        </param>
-    <param type="int"    name="Quark-Threshold">                             0 </param>
-    <param type="double" name="MassW">                                 79.1770 </param>
-    <param type="double" name="MassZ">                                90.34202 </param>
-    <param type="double" name="Rho">                                        0. </param>
-    <param type="int"    name="NGridX">                                    400 </param>
-    <param type="int"    name="NGridQ2">                                   400 </param>
-    <param type="double" name="XGrid-Min">                                1e-6 </param>
-    <param type="double" name="Q2Grid-Min">                                0.1 </param>
-    <param type="double" name="Q2Grid-Max">                               1e10 </param>
-    <param type="double" name="DlogY">                                     0.01 </param>
-    <param type="double" name="DlogX">                                     0.1 </param>
-  </param_set>
-
-  <param_set name="CKM">
-    <param type="double" name="CKM-Vud">                          0.97467 </param>
-    <param type="double" name="CKM-Vus">                          0.22360 </param>
-    <param type="double" name="CKM-Vub">                          0.00000 </param>
-    <param type="double" name="CKM-Vcd">                          0.22360 </param>
-    <param type="double" name="CKM-Vcs">                          0.97360 </param>
-    <param type="double" name="CKM-Vcb">                          0.04470 </param>
-    <param type="double" name="CKM-Vtd">                          0.00000 </param>
-    <param type="double" name="CKM-Vts">                          0.04470 </param>
-    <param type="double" name="CKM-Vtb">                          0.99989 </param>
-  </param_set>
-
-  <param_set name="WeakInt"> 
-    <param type="double" name="WeinbergAngle"> 0.502434 </param>
+    <param type="string" name="SF-name">                             km3net_loi </param>
+    <param type="double" name="W-Min">                                        2 </param>
+    <param type="double" name="DlogY">                                      0.1 </param>
+    <param type="double" name="DlogX">                                      0.1 </param>
   </param_set>
 
   <param_set name="NUCL">
@@ -41,7 +16,7 @@
   </param_set>
 
   <param_set name="Validation">
-    <param type="double" name="GVLD-Emin">          100.000  </param>
+    <param type="double" name="GVLD-Emin">           100.000  </param>
     <param type="double" name="GVLD-Emax"> 1000000000000.000  </param>
   </param_set>
 
