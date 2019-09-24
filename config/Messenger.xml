@@ -192,13 +192,13 @@
   <priority msgstream="XSecAlgMap">            WARN </priority>
   <priority msgstream="XSecSplLst">            WARN </priority>
   <priority msgstream="ZExpAxialFormFactorModel"> WARN </priority>
-  <priority msgstream="HEDISXSec">             INFO </priority>
+  <priority msgstream="HEDISXSec">             WARN </priority>
   <priority msgstream="HEDISPXSec">            WARN </priority>
-  <priority msgstream="HEDISFormFactors">      INFO </priority>
-  <priority msgstream="HEDISKinematics">       WARN </priority>
-  <priority msgstream="HEDISGenerator">       ERROR </priority>
-  <priority msgstream="GLRESXSec">                 WARN   </priority>
-  <priority msgstream="GLRESPXSec">                 WARN   </priority>
+  <priority msgstream="HEDISStrucFunc">        INFO </priority>
+  <priority msgstream="HEDISKinematics">       INFO </priority>
+  <priority msgstream="HEDISGenerator">        ERROR </priority>
+  <priority msgstream="GLRESXSec">             WARN   </priority>
+  <priority msgstream="GLRESPXSec">            WARN   </priority>
   <priority msgstream="GLRESKinematics">       WARN   </priority>
   <priority msgstream="GLRESGenerator">        WARN   </priority>
 
@@ -217,6 +217,7 @@
   <priority msgstream="gmkspl">              DEBUG   </priority>
   <priority msgstream="gmkspl_dm">           WARN   </priority>
   <priority msgstream="gspl2root">           DEBUG   </priority>
+  <priority msgstream="gmkhedissf">          INFO   </priority>
 
   <!-- GSeaGen -->
 
