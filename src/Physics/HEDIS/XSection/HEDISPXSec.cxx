@@ -210,6 +210,8 @@ void HEDISPXSec::LoadConfig(void)
   std::getline (meta_stream,saux); fSFQ2min = atof(saux.c_str());
   std::getline (meta_stream,saux); //# Q2max
   std::getline (meta_stream,saux); fSFQ2max = atof(saux.c_str());
+  std::getline (meta_stream,saux); //# LHAPDF set
+  std::getline (meta_stream,saux);
   std::getline (meta_stream,saux); //# LHAPDF member
   std::getline (meta_stream,saux);
   std::getline (meta_stream,saux); //# Mass Z

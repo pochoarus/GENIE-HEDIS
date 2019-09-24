@@ -6,7 +6,7 @@
          Syntax :
            gmksf [-h]
                  --outdir output_sf_dir_name
-                 --lhapdf lhapdf_name
+                 --lhapdf lhapdf_name,lhapdf_member
                  --mz mass_boson_z
                  --mw mass_boson_w
                  --rho weinberg_angle_em_correction
@@ -26,7 +26,7 @@
                Name of output directory where structure functions will be 
                stored.
            --lhapdf
-               Name of the pdf set used to compute the SF using LHAPDF 
+               Name of the pdf set used to compute the SF using LHAPDF and ID member
            --mz
                Mass of the Z boson in GeV
            --mw
@@ -101,7 +101,8 @@ void   CreateNucStrucFunc (HEDISNucChannel_t ch, vector<double> sf_x_array, vect
 
 // User-specified options:
 string gSFname = "";             // Name output directory where SF are stored
-string gLHAPDFmember;            // Name PDF set in LHAPDF
+string gLHAPDFset;               // Name PDF set in LHAPDF
+int gLHAPDFmember;               // Member in certain PDF set in LHAPDF
 double gMZ;                      // Mass Z boson
 double gMW;                      // Mass W boson
 double gRho;                     // EM correction Weinberg angle
@@ -140,7 +141,7 @@ int main(int argc, char ** argv)
   // initialising lhapdf
 #ifdef __GENIE_LHAPDF6_ENABLED__
   LOG("gmkhedissf", pINFO) << "Initialising LHAPDF6...";
-  pdf = LHAPDF::mkPDF(gLHAPDFmember, 0);
+  pdf = LHAPDF::mkPDF(gLHAPDFset, gLHAPDFmember);
   xPDFmin  = pdf->xMin();
   Q2PDFmin = pdf->q2Min();
   Q2PDFmax = pdf->q2Max();
@@ -157,7 +158,7 @@ int main(int argc, char ** argv)
 #endif
 #ifdef __GENIE_LHAPDF5_ENABLED__
   LOG("gmkhedissf", pINFO) << "Initialising LHAPDF5...";
-  LHAPDF::initPDFByName(fLHAPDFmember, LHAPDF::LHGRID, 0);
+  LHAPDF::initPDFByName(gLHAPDFset, LHAPDF::LHGRID, gLHAPDFmember);
   xPDFmin  = LHAPDF::getXmin(0);
   Q2PDFmin = LHAPDF::getQ2min(0);
   Q2PDFmax = LHAPDF::getQ2max(0);
@@ -220,6 +221,8 @@ int main(int argc, char ** argv)
   meta_stream << gQ2GRIDmin << std::endl;
   meta_stream << "# Q2max" << std::endl;
   meta_stream << gQ2GRIDmax << std::endl;
+  meta_stream << "# LHAPDF set" << std::endl;
+  meta_stream << gLHAPDFset << std::endl;
   meta_stream << "# LHAPDF member" << std::endl;
   meta_stream << gLHAPDFmember << std::endl;
   meta_stream << "# Mass Z" << std::endl;
@@ -266,8 +269,8 @@ int main(int argc, char ** argv)
   if (gNLO) {
     // initialising APFEL framework
     LOG("gmkhedissf", pINFO) << "Initialising APFEL..." ; 
-    APFEL::SetPDFSet(gLHAPDFmember);
-    APFEL::SetReplica(0);
+    APFEL::SetPDFSet(gLHAPDFset);
+    APFEL::SetReplica(gLHAPDFmember);
     if (gMassScheme=="BRG") {
       APFEL::SetMassScheme("FONLL-B");
       APFEL::SetPoleMasses(mPDFQrk[4],mPDFQrk[5],mPDFQrk[6]);
@@ -534,7 +537,13 @@ void GetCommandLineArgs(int argc, char ** argv)
 
   //lhapdf set name
   if(parser.OptionExists("lhapdf")){
-    gLHAPDFmember = parser.ArgAsString("lhapdf");
+    string slhapdf = parser.ArgAsString("lhapdf");
+    // split the comma separated list
+    vector<string> vslhapdf = utils::str::Split(slhapdf, ",");
+    assert(vslhapdf.size() == 2);
+    gLHAPDFset    = vslhapdf[0];
+    gLHAPDFmember = atoi(vslhapdf[1].c_str());
+    LOG("gmkhedissf", pDEBUG) << "gLHAPDFset: " << gLHAPDFset;
     LOG("gmkhedissf", pDEBUG) << "gLHAPDFmember: " << gLHAPDFmember;
   }
   else {
@@ -686,7 +695,7 @@ void PrintSyntax(void)
     << "\n\n" << "Syntax:" << "\n"
     << "\n      gmkhedissf [-h]"
     << "\n                  --outdir output_sf_dir_name"
-    << "\n                  --lhapdf lhapdf_name"
+    << "\n                  --lhapdf lhapdf_name,lhapdf_member"
     << "\n                  --mz mass_boson_z"
     << "\n                  --mw mass_boson_w"
     << "\n                  --rho weinberg_angle_em_correction"

@@ -4,10 +4,10 @@
 
 
   <param_set name="Tunable">
-    <param type="string" name="SF-name">                             km3net_loi </param>
+    <param type="string" name="SF-name">                             KM3NET_s00 </param>
     <param type="double" name="W-Min">                                        2 </param>
-    <param type="double" name="DlogY">                                      0.1 </param>
-    <param type="double" name="DlogX">                                      0.1 </param>
+    <param type="double" name="DlogY">                                     0.01 </param>
+    <param type="double" name="DlogX">                                     0.01 </param>
   </param_set>
 
   <param_set name="NUCL">
