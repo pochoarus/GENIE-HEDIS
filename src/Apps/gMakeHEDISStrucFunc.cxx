@@ -49,7 +49,7 @@
                used if APFEL is available.
            --scheme
                Mass scheme used to account for heavy quark effects. Two options:
-                 BRG: Mass scheme used in arXiv:1808.02034
+                 BGR: Mass scheme used in arXiv:1808.02034
                  CSMS: Mass scherme used in arXiv:1106.3723
            --x
                Number of bins in log10x and min value of x for the SF grid.
@@ -271,7 +271,7 @@ int main(int argc, char ** argv)
     LOG("gmkhedissf", pINFO) << "Initialising APFEL..." ; 
     APFEL::SetPDFSet(gLHAPDFset);
     APFEL::SetReplica(gLHAPDFmember);
-    if (gMassScheme=="BRG") {
+    if (gMassScheme=="BGR") {
       APFEL::SetMassScheme("FONLL-B");
       APFEL::SetPoleMasses(mPDFQrk[4],mPDFQrk[5],mPDFQrk[6]);
     } 
