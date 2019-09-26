@@ -470,9 +470,8 @@ Generator-%d                alg     No
   </param_set>
 
   <param_set name="CCHEDIS"> 
-     <param type="int" name="NGenerators">    2                               </param>
+     <param type="int" name="NGenerators">    1                               </param>
      <param type="alg" name="Generator-0 ">   genie::EventGenerator/HEDIS-CC    </param>
-     <param type="alg" name="Generator-1">    genie::EventGenerator/GLRES       </param>
   </param_set>
 
   <param_set name="NCHEDIS"> 
