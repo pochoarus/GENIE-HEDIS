@@ -82,8 +82,8 @@
 #include "APFEL/APFEL.h"
 #endif
 
-#ifdef __GENIE_LHAPDF6_ENABLED__
 #include "LHAPDF/LHAPDF.h"
+#ifdef __GENIE_LHAPDF6_ENABLED__
 LHAPDF::PDF* pdf;
 #endif
 
@@ -163,7 +163,7 @@ int main(int argc, char ** argv)
   Q2PDFmin = LHAPDF::getQ2min(0);
   Q2PDFmax = LHAPDF::getQ2max(0);
   LOG("gmkhedissf", pINFO) << "PDF info:";
-  LOG("gmkhedissf", pINFO) << "Xmin = " << xPDFmin << "  Xmax = " << pdf->xMax() << "  Q2min = " << Q2PDFmin << "  Q2max = " << Q2PDFmax;
+  LOG("gmkhedissf", pINFO) << "Xmin = " << xPDFmin << "  Xmax = " << LHAPDF::getXmax(0) << "  Q2min = " << Q2PDFmin << "  Q2max = " << Q2PDFmax;
   for (int i=1; i<7; i++) {
     mPDFQrk[i] = LHAPDF::getQMass(i);
     LOG("gmkhedissf", pINFO) << "M" << i << " = " << mPDFQrk[i];
@@ -301,7 +301,9 @@ int main(int argc, char ** argv)
   }
 #endif
 
+#ifdef __GENIE_LHAPDF6_ENABLED__
   delete pdf;
+#endif
 
 }
 //____________________________________________________________________________
@@ -425,9 +427,15 @@ void CreateQrkStrucFunc( HEDISQrkChannel_t ch, vector<double> sf_x_array, vector
         Q2PDF = TMath::Min( Q2PDF, Q2PDFmax  );
 
         // Extract PDF requiring then to be higher than zero
+#ifdef __GENIE_LHAPDF6_ENABLED__
         double fPDF = fmax( pdf->xfxQ2(qpdf1, xPDF, Q2PDF)/z , 0.);
         if (qpdf2!= -999) fPDF -= fmax( pdf->xfxQ2(qpdf2, xPDF, Q2PDF)/z , 0.);
-                    
+#endif
+#ifdef __GENIE_LHAPDF5_ENABLED__
+        double fPDF = fmax( LHAPDF::xfx(xPDF, TMath::Sqrt(Q2PDF), qpdf1)/z , 0.);
+        if (qpdf2!= -999) fPDF -= fmax( LHAPDF::xfx(xPDF, TMath::Sqrt(Q2PDF), qpdf2)/z , 0.);
+#endif
+
         // Compute SF
         double tmp = -999;
         if      ( sf==1 ) tmp = fPDF*Cp2/2;
