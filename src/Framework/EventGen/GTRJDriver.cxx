@@ -231,11 +231,13 @@ bool GTRJDriver::ComputeInteraction(void)
     else {
 
       if (mat->IsMixture()) {
+        double RFrac = rnd->RndEvg().Rndm();
+        LOG("GTRJDriver", pDEBUG) << "RFrac: " << RFrac;
         double FracCum = 0.;
         const TGeoMixture * mixt = dynamic_cast <const TGeoMixture*> (mat);
         for (int i = 0; i < mixt->GetNelements(); i++) {
           FracCum += mixt->GetWmixt()[i]; // relative proportion by mass
-          if (R<FracCum) {
+          if (RFrac<FracCum) {
             fCurTgtPdg = fGeomAnalyzer->GetTargetPdgCode(mixt, i);
             break;
           }
