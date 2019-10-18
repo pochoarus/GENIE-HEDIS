@@ -44,13 +44,9 @@ public:
 private:
   void   LoadConfig (void);
 
-  mutable bool fMaxXsecFileExists = false;  // Flag to check if Max Xsec file exists
-  string fMaxXsecDirName;                   // Name of Max Xsec directory
-
-  double fdlogy;                            // Binning size in log10x for grid integration
-  double fdlogx;                            // Binning size in log10y for grid integration
-  std::vector<double> fVy;                  // x binning for grid integration
-  std::vector<double> fVx;                  // y binning for grid integration
+  double fSFXmin;   ///< minimum value of x for which SF tables are computed
+  double fSFQ2min;  ///< minimum value of Q2 for which SF tables are computed
+  double fSFQ2max;  ///< maximum value of Q2 for which SF tables are computed
 
 };
 

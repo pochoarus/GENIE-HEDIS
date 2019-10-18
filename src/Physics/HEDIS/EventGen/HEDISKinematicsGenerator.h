@@ -25,9 +25,6 @@
 #define _HEDIS_KINEMATICS_GENERATOR_H_
 
 #include "Physics/Common/KineGeneratorWithCache.h"
-#include "Framework/Numerical/Spline.h"
-
-#include <map>
 
 namespace genie {
 
@@ -38,13 +35,7 @@ public :
   HEDISKinematicsGenerator(string config);
   ~HEDISKinematicsGenerator();
 
-  class HEDISMaxXsecSpline 
-  {
-  public:
-    HEDISMaxXsecSpline() { }
-    ~HEDISMaxXsecSpline() { }
-    map< int, genie::Spline * > Spline;
-  };
+  double ComputeMaxXSec       (const Interaction * interaction) const;
 
   // implement the EventRecordVisitorI interface
   void ProcessEventRecord(GHepRecord * event_rec) const;
@@ -56,19 +47,20 @@ public :
 
 private:
 
-  double ComputeMaxXSec       (const Interaction * interaction) const;
-  void   LoadMaxXsecFromAscii (void) const;
+  double Scan(Interaction * interaction, Range1D_t xrange,Range1D_t Q2range, int NKnotsQ2, int NKnotsX, double ME2, double & x_scan, double & Q2_scan) const;
 
   void   LoadConfig           (void);
 
-  string fMaxXsecDirName;                ///< name  Max Xsec direcotry
-  mutable bool fMaxXsecIsLoad = false;   ///< check Max Xsec spl are loaded
-  mutable map<HEDISQrkChannel_t, HEDISMaxXsecSpline> 
-                fspl_max;  ///< splines to store max xsec for each channel
+  int    fWideNKnotsX;
+  int    fWideNKnotsQ2;
+  double fWideRange;
+  int    fFineNKnotsX;
+  int    fFineNKnotsQ2;
+  double fFineRange;
 
-
-  double fXmin;   ///< minimum value of x for which SF tables are computed
-  double fQ2min;  ///< minimum value of Q2 for which SF tables are computed 
+  double fSFXmin;   ///< minimum value of x for which SF tables are computed
+  double fSFQ2min;  ///< minimum value of Q2 for which SF tables are computed 
+  double fSFQ2max;  ///< maximum value of Q2 for which SF tables are computed 
 
 };
 

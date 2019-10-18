@@ -56,26 +56,23 @@ double HEDISPXSec::XSec(
   // Load SF tables 
   HEDISStrucFunc * sf_tbl = HEDISStrucFunc::Instance(fSFname,fSFNLO,fSFNX,fSFXmin,fSFNQ2,fSFQ2min,fSFQ2max);
 
-  const Kinematics   & kinematics = interaction -> Kine();
-  double x     = kinematics.x();
-  double Q2    = kinematics.Q2();
-  double W     = kinematics.W();
-
-  // Xsec is zero for regions outside the range in which SF have ben computed
-  if ( x<fSFXmin   ) return 0.;  
-  if ( Q2<fSFQ2min ) return 0.;
-  if ( Q2>fSFQ2max ) return 0.;
   // W limits are computed using kinematics assumption.
   // The lower limit is tuneable because hadronization might have issues at low W (as in PYTHIA6).
   // To be consistent the cross section must be computed in the W range where the events are generated.
-  if ( W<fWmin     ) return 0.;
+  const Kinematics  & kinematics = interaction -> Kine();
+  const KPhaseSpace & ps         = interaction -> PhaseSpace();
+  double W = kinematics.W();
+  Range1D_t Wl  = ps.WLim();
+  Wl.min = TMath::Max(Wl.min,fWmin);
+  if      ( W<Wl.min ) return 0.;
+  else if ( W>Wl.max ) return 0.;
 
   const InitialState & init_state = interaction -> InitState();
 
   HEDISQrkChannel_t ch = interaction->ExclTag().HEDISQrkChannel();
-  double E     = init_state.ProbeE(kRfLab);
-  double Mnuc  = init_state.Tgt().HitNucMass();
   double y     = kinematics.y();
+  double Q2    = kinematics.Q2();
+  double x     = kinematics.x();
 
   // Get F1,F2,F3 for particular quark channel and compute differential xsec
   SF_xQ2 sf = sf_tbl->EvalQrkSFLO( ch, x, Q2 );
@@ -102,12 +99,12 @@ double HEDISPXSec::XSec(
   if (interaction -> ProcInfo().IsWeakCC()) propagator = TMath::Power( fMassW*fMassW/(Q2+fMassW*fMassW), 2);
   else                                      propagator = TMath::Power( fMassZ*fMassZ/(Q2+fMassZ*fMassZ)/(1.-fRho), 2);
 
-  xsec *= kGF2 * Mnuc* E / kPi * propagator;
+  xsec *= kGF2/(2*kPi*x) * propagator;
 
-  LOG("HEDISPXSec", pINFO) << "d2xsec/dxdy[FreeN] (E= " << E << ", x= " << x  << ", y= " << y << ", Q2= " << Q2 << ") = " << xsec;
+  LOG("HEDISPXSec", pINFO) << "d2xsec/dxdy[FreeN] (x= " << x  << ", y= " << y << ", Q2= " << Q2 << ") = " << xsec;
 
   // The algorithm computes d^2xsec/dxdy. Check whether variable tranformation is needed
-  if( kps!=kPSxyfE ) xsec *= utils::kinematics::Jacobian(interaction,kPSxyfE,kps);
+  if( kps!=kPSxQ2fE ) xsec *= utils::kinematics::Jacobian(interaction,kPSxQ2fE,kps);
 
   // If requested return the free nucleon xsec even for input nuclear tgt 
   if( interaction->TestBit(kIAssumeFreeNucleon) ) return xsec;

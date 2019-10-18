@@ -13,6 +13,7 @@
 //____________________________________________________________________________
 
 #include "Physics/HEDIS/EventGen/HEDISKinematicsGenerator.h"
+#include "Framework/Conventions/Units.h"
 #include "Framework/Conventions/Controls.h"
 #include "Framework/Conventions/KineVar.h"
 #include "Framework/Conventions/KinePhaseSpace.h"
@@ -27,12 +28,18 @@
 #include "Framework/Utils/Range1.h"
 #include "Framework/Utils/RunOpt.h"
 #include "Framework/ParticleData/PDGUtils.h"
+#include "Physics/XSectionIntegration/GSLXSecFunc.h"
+
 
 #include <TMath.h>
 #include <TFile.h>
 #include <TSystem.h>
+#include <Math/IFunction.h>
+#include <Math/Minimizer.h>
+#include <Math/Factory.h>
 
 #include <string>
+#include <fstream>
 
 using namespace genie;
 using namespace genie::controls;
@@ -78,42 +85,46 @@ void HEDISKinematicsGenerator::ProcessEventRecord(GHepRecord * evrec) const
 
   //-- Get the physical W range 
   const KPhaseSpace & kps = interaction->PhaseSpace();
-  Range1D_t W  = kps.Limits(kKVW);
-  if(W.max <=0 || W.min>=W.max) {
-     LOG("HEDISKinematics", pWARN) << "No available phase space";
-     evrec->EventFlags()->SetBitNumber(kKineGenErr, true);
-     genie::exceptions::EVGThreadException exception;
-     exception.SetReason("No available phase space");
-     exception.SwitchOnFastForward();
-     throw exception;
-  }
+  Range1D_t xl = kps.XLim();
+  Range1D_t Q2l = kps.Q2Lim();
 
+  //-- x and y lower limit restrict by limits in SF tables
+  Q2l.min = TMath::Max(Q2l.min,fSFQ2min);
+  Q2l.max = TMath::Min(Q2l.max,fSFQ2max);
+  xl.min  = TMath::Max(TMath::Max(xl.min,Q2l.min/2./M/Ev),fSFXmin);
 
-  Range1D_t xl = kps.Limits(kKVx);
-  Range1D_t yl = kps.Limits(kKVy);
-
-  //-- x and y lower limit restrict by limits in SF tables 
-  double xymin = fQ2min/2/M/Ev;   // x*y = Q2/(2ME)
-  if ( fXmin > xl.min ) xl.min = fXmin;
-  if ( xymin > xl.min ) xl.min = xymin;  //assuming y=1 -> xmin = Q2min/(2ME)
-  if ( xymin > yl.min ) yl.min = xymin;  //assuming x=1 -> xmin = Q2min/(2ME)
-
-  double log10xmin = TMath::Log10(xl.min);  
-  double log10xmax = TMath::Log10(xl.max); 
-  double log10ymin = TMath::Log10(yl.min);  
-  double log10ymax = TMath::Log10(yl.max); 
-
-  LOG("HEDISKinematics", pNOTICE) << "log10x: [" << log10xmin << ", " << log10xmax << "]"; 
-  LOG("HEDISKinematics", pNOTICE) << "log10y: [" << log10ymin << ", " << log10ymax << "]"; 
+  LOG("HEDISKinematics", pNOTICE) << "x: [" << xl.min << ", " << xl.max << "]"; 
+  LOG("HEDISKinematics", pNOTICE) << "log10Q2: [" << Q2l.min << ", " << Q2l.max << "]"; 
 
   //-- For the subsequent kinematic selection with the rejection method:
-  double xsec_max = this->ComputeMaxXSec(interaction);
+  
+  //Scan through a wide region to find the maximum
+  Range1D_t xrange_wide(xl.min*fWideRange,xl.max/fWideRange); 
+  Range1D_t Q2range_wide(Q2l.min*fWideRange,Q2l.max/fWideRange); 
+  double x_wide    = 0.;
+  double Q2_wide   = 0.;
+  double xsec_wide = this->Scan(interaction,xrange_wide,Q2range_wide,fWideNKnotsX,fWideNKnotsQ2,2*M*Ev,x_wide,Q2_wide);
+
+  //Scan through a fine region to find the maximum
+  Range1D_t xrange_fine(TMath::Max(x_wide/fFineRange,xrange_wide.min),TMath::Min(x_wide*fFineRange,xrange_wide.max)); 
+  Range1D_t Q2range_fine(TMath::Max(Q2_wide/fFineRange,Q2range_wide.min),TMath::Min(Q2_wide*fFineRange,Q2range_wide.max)); 
+  double x_fine    = 0.;
+  double Q2_fine   = 0.;
+  double xsec_fine = this->Scan(interaction,xrange_fine,Q2range_fine,fFineNKnotsX,fFineNKnotsQ2,2*M*Ev,x_fine,Q2_fine);
+
+  //Apply safety factor
+  double xsec_max = fSafetyFactor * TMath::Max(xsec_wide,xsec_fine);
 
   //-- Try to select a valid (x,y) pair using the rejection method
+  double log10xmin  = TMath::Log10(xl.min);  
+  double log10xmax  = TMath::Log10(xl.max); 
+  double log10Q2min = TMath::Log10(Q2l.min);  
+  double log10Q2max = TMath::Log10(Q2l.max); 
+
   double dlog10x = log10xmax - log10xmin; 
-  double dlog10y = log10ymax - log10ymin; 
+  double dlog10Q2 = log10Q2max - log10Q2min; 
   
-  double gx=-1, gy=-1, gW=-1, gQ2=-1, xsec=-1;
+  double gx=-1, gQ2=-1, xsec=-1;
 
   unsigned int iter = 0;
   bool accept = false;
@@ -130,121 +141,91 @@ void HEDISKinematicsGenerator::ProcessEventRecord(GHepRecord * evrec) const
      }
     
      gx = TMath::Power( 10., log10xmin + dlog10x * rnd->RndKine().Rndm() ); 
-     gy = TMath::Power( 10., log10ymin + dlog10y * rnd->RndKine().Rndm() ); 
+     gQ2 = TMath::Power( 10., log10Q2min + dlog10Q2 * rnd->RndKine().Rndm() ); 
 
      interaction->KinePtr()->Setx(gx);
-     interaction->KinePtr()->Sety(gy);
-     kinematics::UpdateWQ2FromXY(interaction);
+     interaction->KinePtr()->SetQ2(gQ2);
+     kinematics::UpdateWYFromXQ2(interaction);
 
      LOG("HEDISKinematics", pDEBUG) 
-        << "Trying: x = " << gx << ", y = " << gy 
+        << "Trying: x = " << gx << ", Q2 = " << gQ2 
         << " (W  = " << interaction->KinePtr()->W()  << ","
-        << "  Q2 = " << interaction->KinePtr()->Q2() << ")";
+        << "  y = " << interaction->KinePtr()->y() << ")";
 
      //-- compute the cross section for current kinematics
-     xsec = fXSecModel->XSec(interaction, kPSxyfE);
-
-     //-- jacobian account for the log10 sampling
-     double J = TMath::Log(10.)*gx*TMath::Log(10.)*gy; 
+     xsec = fXSecModel->XSec(interaction, kPSlog10xlog10Q2fE);
 
      //-- decide whether to accept the current kinematics
-     this->AssertXSecLimits(interaction, J*xsec, xsec_max);
+     this->AssertXSecLimits(interaction, xsec, xsec_max);
 
      double t = xsec_max * rnd->RndKine().Rndm();
 
-     LOG("HEDISKinematics", pDEBUG) << "xsec= " << xsec << ", J= " << J << ", Rnd= " << t;
+     LOG("HEDISKinematics", pDEBUG) << "xsec= " << xsec << ", Rnd= " << t;
 
-     accept = (t < J*xsec);
+     accept = (t < xsec);
 
      //-- If the generated kinematics are accepted, finish-up module's job
      if(accept) {
          LOG("HEDISKinematics", pNOTICE) 
-            << "Selected:  x = " << gx << ", y = " << gy
+            << "Selected:  x = " << gx << ", Q2 = " << gQ2
             << " (W  = " << interaction->KinePtr()->W()  << ","
-            << " (Q2 = " << interaction->KinePtr()->Q2() << ")";
+            << " (Y = " << interaction->KinePtr()->y() << ")";
 
          // reset trust bits
          interaction->ResetBit(kISkipProcessChk);
          interaction->ResetBit(kISkipKinematicChk);
 
          // set the cross section for the selected kinematics
-         evrec->SetDiffXSec(xsec,kPSxyfE);
-
-         // compute W,Q2 for selected x,y
-         kinematics::XYtoWQ2(Ev,M,gW,gQ2,gx,gy);
-
-         LOG("HEDISKinematics", pNOTICE) 
-                        << "Selected x,y => W = " << gW << ", Q2 = " << gQ2;
+         evrec->SetDiffXSec(xsec,kPSxQ2fE);
 
          // lock selected kinematics & clear running values
-         interaction->KinePtr()->SetW (gW,  true);
+         interaction->KinePtr()->SetW (interaction->KinePtr()->W(),  true);
+         interaction->KinePtr()->Sety (interaction->KinePtr()->y(),  true);
          interaction->KinePtr()->SetQ2(gQ2, true);
          interaction->KinePtr()->Setx (gx,  true);
-         interaction->KinePtr()->Sety (gy,  true);
          interaction->KinePtr()->ClearRunningValues();
          return;
      }
   } // iterations
 }
 //___________________________________________________________________________
-double HEDISKinematicsGenerator::ComputeMaxXSec(
-                                       const Interaction * interaction ) const
+double HEDISKinematicsGenerator::Scan(Interaction * interaction, Range1D_t xrange,Range1D_t Q2range, int NKnotsQ2, int NKnotsX, double ME2, double & x_scan, double & Q2_scan) const
 {
 
-  // Max Xsec must be load the first time we call this method and not anymore.
-  // TODO: This might be removed in the future if Max Xsec are included in Splines.
-  if (!fMaxXsecIsLoad) LoadMaxXsecFromAscii();
+  double xsec_scan = 0.;
+  Q2_scan   = 0.;
+  x_scan    = 0.;
 
-  LOG("HEDISKinematics", pINFO)<< "Computing max xsec in allowed phase space";
-  double max_xsec = 0.0;
+  double stepQ2 = TMath::Power(Q2range.max/Q2range.min,1./(NKnotsQ2-1));
 
-  const InitialState & init_state = interaction->InitState();
-  double Ev  = init_state.ProbeE(kRfLab);
-
-  int absnupdg = TMath::Abs(interaction->InitState().ProbePdg());
-  HEDISQrkChannel_t chID = interaction->ExclTag().HEDISQrkChannel();
-  max_xsec = fspl_max.at(chID).Spline.at(absnupdg)->Evaluate(Ev);
-
-  int  nuc_pdgc = interaction->InitState().Tgt().HitNucPdg();
-  if      ( pdg::IsProton  (nuc_pdgc) ) { max_xsec *= interaction->InitState().Tgt().Z(); }
-  else if ( pdg::IsNeutron (nuc_pdgc) ) { max_xsec *= interaction->InitState().Tgt().N(); }
-
-#ifdef __GENIE_LOW_LEVEL_MESG_ENABLED__
-  LOG("HEDISKinematics", pINFO) << interaction->AsString();
-  LOG("HEDISKinematics", pINFO) << "Max xsec in phase space ( E= " << Ev << " GeV) = " << max_xsec;
-  LOG("HEDISKinematics", pINFO) << "Computed using alg = " << *fXSecModel;
-#endif
-
-  return max_xsec;
-}
-//____________________________________________________________________________
-void HEDISKinematicsGenerator::LoadMaxXsecFromAscii() const
-{
-
-  // Check that Max Xsec directory exists
-  if ( gSystem->AccessPathName( fMaxXsecDirName.c_str()) ) {
-    LOG("HEDISKinematics", pERROR) << "Max Xsec directory does not exist...";
-    LOG("HEDISKinematics", pERROR) << fMaxXsecDirName;
-    assert(0);
-  }
-
-  // Load Max Xsec to Splines
-  int absnupdg[3] = { 12, 14, 16 };
-  for( int n=0; n<3; n++ ) {
-    for( int ch=1; ch<kHEDISQrk_numofchannels; ch++ ) {      
-      string filename = fMaxXsecDirName + "/Flvr" + std::to_string(absnupdg[n]) + "_" + HEDISChannel::AsString((HEDISQrkChannel_t)ch) + ".dat";      
-      if ( !gSystem->AccessPathName(filename.c_str()) ) {
-        LOG("HEDISKinematics", pINFO)<< "Loading splines from: " << filename;
-        fspl_max[(HEDISQrkChannel_t)ch].Spline[absnupdg[n]] = new Spline(filename,"","",false);
-        fspl_max[(HEDISQrkChannel_t)ch].Spline[absnupdg[n]]->Multiply(fSafetyFactor);
+  for ( int iq=0; iq<NKnotsQ2; iq++) {
+    double Q2_aux = Q2range.min*TMath::Power(stepQ2,iq);
+    xrange.min = TMath::Max(xrange.min,Q2_aux/ME2);
+    double stepx = TMath::Power(xrange.max/xrange.min,1./(NKnotsX-1));
+    for ( int ix=0; ix<NKnotsX; ix++) {
+      double x_aux = xrange.min*TMath::Power(stepx,ix);
+      interaction->KinePtr()->Setx(x_aux);
+      interaction->KinePtr()->SetQ2(Q2_aux);
+      kinematics::UpdateWYFromXQ2(interaction);      
+      double xsec_aux = fXSecModel->XSec(interaction, kPSlog10xlog10Q2fE);
+      LOG("HEDISKinematics", pDEBUG) << "x = " << x_aux << " , Q2 = " << Q2_aux << ", xsec = " << xsec_aux; 
+      if (xsec_aux>xsec_scan) {
+        xsec_scan = xsec_aux;
+        Q2_scan   = Q2_aux;
+        x_scan    = x_aux;
       }
-    
     }
   }
 
-  // Change to true to make sure this method is called only once.
-  fMaxXsecIsLoad = true;
+  LOG("HEDISKinematics", pNOTICE) << "scan -> x = " << x_scan << " , Q2 = " << Q2_scan << ", xsec = " << xsec_scan; 
 
+  return xsec_scan;
+
+}
+//___________________________________________________________________________
+double HEDISKinematicsGenerator::ComputeMaxXSec(const Interaction * interaction) const
+{
+  return 0;
 }
 //___________________________________________________________________________
 void HEDISKinematicsGenerator::Configure(const Registry & config)
@@ -269,9 +250,15 @@ void HEDISKinematicsGenerator::LoadConfig(void)
   GetParamDef("MaxXSec-DiffTolerance", fMaxXSecDiffTolerance, 999999. ) ;
   assert(fMaxXSecDiffTolerance>=0);
 
-  // The name of the directory in which SF tables are stored is need for two reasons.
-  // 1) To extract some information from the metafile about the limits of the tables
-  // 2) To get the name of the Max Xsec directory
+  GetParamDef("ScanWide-NKnotsX",   fWideNKnotsX,   10 ) ;
+  GetParamDef("ScanWide-NKnotsQ2", fWideNKnotsQ2,   10 ) ;
+  GetParamDef("ScanWide-Range",       fWideRange,  1.1 ) ;
+  GetParamDef("ScanFine-NKnotsX",   fFineNKnotsX,   10 ) ;
+  GetParamDef("ScanFine-NKnotsQ2", fFineNKnotsQ2,   10 ) ;
+  GetParamDef("ScanFine-Range",       fFineRange,  10. ) ;
+
+  // The name of the directory in which SF tables are stored is need to extract some 
+  // information from the metafile about the limits of the tables
   string SFname;
   GetParamDef("SF-name", SFname, string("") ) ;
 
@@ -291,26 +278,13 @@ void HEDISKinematicsGenerator::LoadConfig(void)
   std::getline (meta_stream,saux); //# NX
   std::getline (meta_stream,saux);
   std::getline (meta_stream,saux); //# Xmin
-  std::getline (meta_stream,saux); fXmin = atof(saux.c_str());
+  std::getline (meta_stream,saux); fSFXmin = atof(saux.c_str());
   std::getline (meta_stream,saux); //# NQ2
   std::getline (meta_stream,saux);
   std::getline (meta_stream,saux); //# Q2min
-  std::getline (meta_stream,saux); fQ2min = atof(saux.c_str());
+  std::getline (meta_stream,saux); fSFQ2min = atof(saux.c_str());
+  std::getline (meta_stream,saux); //# Q2max
+  std::getline (meta_stream,saux); fSFQ2max = atof(saux.c_str());
   meta_stream.close();
-
-  // The following information is needed to get the name of the Max Xsec directory.
-  // TODO: This might be removed in the future if Max Xsec are included in Splines.
-  double dlogy;
-  double dlogx;
-  GetParamDef("DlogY", dlogy, 0.01 ) ;
-  GetParamDef("DlogX", dlogx, 0.01 ) ;
-  std::ostringstream sdlogy,sdlogx; 
-  sdlogy << dlogy;
-  sdlogx << dlogx;
-
-  // Name Max Xsec directory. This shoud match the one generated by HEDISXSec.
-  fMaxXsecDirName = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/maxxsec/" + SFname + "_dx" + sdlogx.str() + "dy" + sdlogy.str();
-
-
 
 }

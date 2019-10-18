@@ -178,6 +178,14 @@ double genie::utils::kinematics::Jacobian(
   {
     J = 1. / (kine.x() * kine.y());
   }
+  //
+  // transformation: {log10x,log10Q2}|E -> {x,Q2}|E
+  //
+  else
+  if ( TransformMatched(fromps,tops,kPSxQ2fE,kPSlog10xlog10Q2fE,forward) )
+  {
+    J = TMath::Log(10.)*kine.x() * TMath::Log(10.)*kine.Q2();
+  }
 
   //
   // transformation: {Q2,y}|E -> {lnQ2,lny}|E
@@ -932,6 +940,25 @@ void genie::utils::kinematics::XYtoWQ2(
       << "(x=" << x << ",y=" << y << " => (W=" << W << ",Q2=" << Q2 << ")";
 }
 //___________________________________________________________________________
+void genie::utils::kinematics::XQ2toWY(
+            double Ev, double M, double & W, double Q2, double x, double & y)
+{
+// Converts (x,Q2) => (W,Y)
+// Uses the system: a) W^2 - M^2 = 2*Ev*M*y*(1-x) and b) Q^2 = 2*x*y*M*Ev
+// Ev is the neutrino energy at the struck nucleon rest frame
+// M is the nucleon mass - it does not need to be on the mass shell
+
+  double M2  = TMath::Power(M,2);
+  y = Q2 / (2 * x * M * Ev);
+  y = TMath::Min(1.,y);
+
+  double W2  = M2 + 2*Ev*M*y*(1-x);
+  W  = TMath::Sqrt(TMath::Max(0., W2));
+
+  LOG("KineLimits", pDEBUG)
+      << "(x=" << x << ",Q2=" << Q2 << " => (W=" << W << ",Y=" << y << ")";
+}
+//___________________________________________________________________________
 double genie::utils::kinematics::XYtoW(
                                      double Ev, double M, double x, double y)
 {
@@ -1062,6 +1089,24 @@ void genie::utils::kinematics::UpdateXYFromWQ2(const Interaction * in)
     double x=-1,y=-1;
     kinematics::WQ2toXY(Ev,M,W,Q2,x,y);
     kine->Setx(x);
+    kine->Sety(y);
+  }
+}
+//___________________________________________________________________________
+void genie::utils::kinematics::UpdateWYFromXQ2(const Interaction * in)
+{
+  Kinematics * kine = in->KinePtr();
+
+  if(kine->KVSet(kKVx) && kine->KVSet(kKVQ2)) {
+    const InitialState & init_state = in->InitState();
+    double Ev = init_state.ProbeE(kRfHitNucRest);
+    double M  = init_state.Tgt().HitNucP4Ptr()->M(); // can be off mass shell
+    double x  = kine->x();
+    double Q2 = kine->Q2();
+
+    double W=-1,y=-1;
+    kinematics::XQ2toWY(Ev,M,W,Q2,x,y);
+    kine->SetW(W);
     kine->Sety(y);
   }
 }

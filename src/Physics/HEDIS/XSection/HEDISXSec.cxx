@@ -98,82 +98,46 @@ double HEDISXSec::Integrate(
     delete interaction;
   }
 
-  Range1D_t Wl  = kps.WLim();
-  LOG("HEDISXSec", pDEBUG) << "W integration range = [" << Wl.min << ", " << Wl.max << "]";
+  Range1D_t xl  = kps.XLim();
   Range1D_t Q2l = kps.Q2Lim();
-  LOG("HEDISXSec", pDEBUG) << "Q2 integration range = [" << Q2l.min << ", " << Q2l.max << "]";
+  LOG("HEDISXSec", pDEBUG) << "X only kinematic range = [" << xl.min << ", " << xl.max << "]";
+  LOG("HEDISXSec", pDEBUG) << "Q2 only kinematic range = [" << Q2l.min << ", " << Q2l.max << "]";
+
+  if (xl.min < fSFXmin)  xl.min=fSFXmin;
+  if (Q2l.min < fSFQ2min) Q2l.min=fSFQ2min;
+  if (Q2l.max > fSFQ2max) Q2l.max=fSFQ2max;
+
+  LOG("HEDISXSec", pDEBUG) << "X kinematic+PDF range = [" << xl.min << ", " << xl.max << "]";
+  LOG("HEDISXSec", pDEBUG) << "Q2 kinematic+PDF range = [" << Q2l.min << ", " << Q2l.max << "]";
+
 
   bool phsp_ok = 
       (Q2l.min >= 0. && Q2l.max >= 0. && Q2l.max >= Q2l.min &&
-        Wl.min >= 0. &&  Wl.max >= 0. &&  Wl.max >=  Wl.min);
+        xl.min >= 0. &&  xl.max <= 1. &&  xl.max >=  xl.min);
 
   if (!phsp_ok) return 0.;
+
 
   // Just go ahead and integrate the input differential cross section for the 
   // specified interaction.
   //
   double xsec = 0.;
-  double d2xsec_max = 0.;
 
   Interaction * interaction = new Interaction(*in);
   
-  // First we compute the integral using the grid.
-  // This is always needed because we need to get the Max Xsec.
-  // TODO: This might be change in the future if Max Xsec are computed with minimization.
-  for ( const auto& y : fVy ) {
-    interaction->KinePtr()->Sety( y );
-    double dxsecdy = 0.;
-    for ( const auto& x : fVx ) {
-      interaction->KinePtr()->Setx(x);
-      utils::kinematics::UpdateWQ2FromXY(interaction);
-      double d2xsecdxdy = model->XSec(interaction, kPSxyfE);     
-      dxsecdy += d2xsecdxdy * x;
-      double d2xsec = d2xsecdxdy * x * y;
-      xsec += d2xsec;
-      if ( d2xsec > d2xsec_max ) d2xsec_max = d2xsec;
-    }
-  }
-  d2xsec_max *= TMath::Log(10.) * TMath::Log(10.);
-  xsec       *= TMath::Log(10.) * TMath::Log(10.) * fdlogx * fdlogy;
-  
   // If a GSL option has been chosen, then the total xsec is recomptued
-  if (fGSLIntgType!="") {
-       ROOT::Math::IBaseFunctionMultiDim * func = new utils::gsl::d2XSec_dWdQ2_E(model, interaction);
-       ROOT::Math::IntegrationMultiDim::Type ig_type = utils::gsl::IntegrationNDimTypeFromString(fGSLIntgType);
-       double abstol = 1; //We mostly care about relative tolerance.
-       ROOT::Math::IntegratorMultiDim ig(*func, ig_type, abstol, fGSLRelTol, fGSLMaxEval);
-       double kine_min[2] = { Wl.min, Q2l.min };
-       double kine_max[2] = { Wl.max, Q2l.max };
-       xsec = ig.Integral(kine_min, kine_max) * (1E-38 * units::cm2);
-       delete func;
-  }
+  ROOT::Math::IBaseFunctionMultiDim * func = new utils::gsl::d2XSec_dlog10xdlog10Q2_E(model, interaction);
+  ROOT::Math::IntegrationMultiDim::Type ig_type = utils::gsl::IntegrationNDimTypeFromString(fGSLIntgType);
+  double abstol = 1; //We mostly care about relative tolerance.
+  ROOT::Math::IntegratorMultiDim ig(*func, ig_type, abstol, fGSLRelTol, fGSLMaxEval);
+  double kine_min[2] = { TMath::Log10(xl.min), TMath::Log10(Q2l.min) };
+  double kine_max[2] = {TMath::Log10(xl.max), TMath::Log10(Q2l.max) };
+  xsec = ig.Integral(kine_min, kine_max) * (1E-38 * units::cm2);
+  delete func;
 
   delete interaction;
 
-  LOG("HEDISXSec", pINFO)  << "XSec[HEDIS] (E = " << Ev << " GeV) = " << xsec * (1E+38/units::cm2) << " x 1E-38 cm^2  (max = " << d2xsec_max << ")";
-
-  // File for the Max Xsec is created here and Max Xsec for each neutrino energy.
-  // The program checks if the file already exists. If so then it crashes becuase
-  // we dont want to overwrite a previously produce max xsec.
-  string sabsnupdg = std::to_string( TMath::Abs(init_state.ProbePdg()) );
-  HEDISQrkChannel_t chID = in->ExclTag().HEDISQrkChannel();
-  string maxxsecfilename = fMaxXsecDirName + "/Flvr" + sabsnupdg + "_" + HEDISChannel::AsString(chID) + ".dat";
-
-  if (!fMaxXsecFileExists) {
-    if ( gSystem->AccessPathName( maxxsecfilename.c_str()) ) {
-      LOG("HEDISXSec", pINFO) << "Creating Max Xsec file: " << maxxsecfilename;        
-      fMaxXsecFileExists = true;
-    }
-    else {
-      LOG("HEDISXSec", pERROR) << "Max Xsec file already exists: " << maxxsecfilename;        
-      LOG("HEDISXSec", pERROR) << "Stop to avoid overwriting!!!";        
-      assert(0);
-    }
-  }
-
-  std::ofstream maxxsec_stream(maxxsecfilename.c_str(),std::fstream::app);
-  maxxsec_stream << Ev << "  " << d2xsec_max << std::endl;
-  maxxsec_stream.close();
+  LOG("HEDISXSec", pINFO)  << "XSec[HEDIS] (E = " << Ev << " GeV) = " << xsec * (1E+38/units::cm2) << " x 1E-38 cm^2";
 
   return xsec;
 
@@ -195,7 +159,7 @@ void HEDISXSec::LoadConfig(void)
 {
 
   // Get GSL integration type & relative tolerance
-  GetParamDef( "gsl-integration-type", fGSLIntgType, string("") ) ;
+  GetParamDef( "gsl-integration-type", fGSLIntgType, string("adaptive") ) ;
   GetParamDef( "gsl-relative-tolerance", fGSLRelTol, 1E-2 ) ;
 
   int max_eval, min_eval ;
@@ -204,33 +168,35 @@ void HEDISXSec::LoadConfig(void)
   fGSLMaxEval  = (unsigned int) max_eval ;
   fGSLMinEval  = (unsigned int) min_eval ;
 
-  // Binning size (in log10) used to intergrate over x and y
-  GetParamDef("DlogY", fdlogy, 0.01 ) ;
-  GetParamDef("DlogX", fdlogx, 0.01 ) ;
-  std::ostringstream sdlogy,sdlogx; 
-  sdlogy << fdlogy;
-  sdlogx << fdlogx;
-
-  // The minimum value for x and y is 1e-10. This value is safe for energies below 1e15 GeV.
-  // Binning is generated for x and y
-  double flogymin = -10;
-  double flogxmin = -10;
-  for ( int iy=0; iy<TMath::Abs(flogymin)/fdlogy; iy++) fVy.push_back( TMath::Power( 10., flogymin + (iy+0.5)*fdlogy ) );
-  for ( int ix=0; ix<TMath::Abs(flogxmin)/fdlogx; ix++) fVx.push_back( TMath::Power( 10., flogxmin + (ix+0.5)*fdlogx ) );
-
-  // Name of the directory where SF tables are saved. We need it here to define a name for the Max Xsec directory.
-  // TODO: This might be removed in the future if Max Xsec are included in Splines.
+  // Name of the directory where SF tables are saved. 
+  // Then some information from the metafile must be extracted to compute the xsec.
   string SFname;
   GetParamDef("SF-name", SFname, string("") ) ;
+  SFname = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/sf/" + SFname;
 
-  // Name Max Xsec directory. It will be created if it doesnt exist.
-  fMaxXsecDirName = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/maxxsec/" + SFname + "_dx" + sdlogx.str() + "dy" + sdlogy.str();
-  if ( gSystem->mkdir(fMaxXsecDirName.c_str())==0 ) {
-    LOG("HEDISXSec", pINFO) << "Creating Max Xsec directory: " << fMaxXsecDirName;
+  string metaFile = SFname + "/Inputs.txt";
+  // make sure meta files are available
+  LOG("HEDISPXSec", pDEBUG) << "Checking if file " << metaFile << " exists...";        
+  if ( gSystem->AccessPathName( metaFile.c_str()) ) {
+    LOG("HEDISPXSec", pERROR) << "File doesnt exist";        
+    LOG("HEDISPXSec", pERROR) << "HEDIS package requires precomputation of SF using gMakeStrucFunc";        
+    assert(0);
   }
-  else {
-    LOG("HEDISXSec", pINFO) << "Max Xsec directory already exist: " << fMaxXsecDirName;
-  }
+
+  std::ifstream meta_stream(metaFile.c_str(), std::ios::in);
+  string saux;
+  std::getline (meta_stream,saux); //# NX
+  std::getline (meta_stream,saux);
+  std::getline (meta_stream,saux); //# Xmin
+  std::getline (meta_stream,saux); fSFXmin = atof(saux.c_str());
+  std::getline (meta_stream,saux); //# NQ2
+  std::getline (meta_stream,saux);
+  std::getline (meta_stream,saux); //# Q2min
+  std::getline (meta_stream,saux); fSFQ2min = atof(saux.c_str());
+  std::getline (meta_stream,saux); //# Q2max
+  std::getline (meta_stream,saux); fSFQ2max = atof(saux.c_str());
+  std::getline (meta_stream,saux); //# LHAPDF set
+
 
 
 }

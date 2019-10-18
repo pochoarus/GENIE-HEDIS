@@ -20,11 +20,23 @@ Cache-MinEnergy          double  Yes   minimum energy for which max xsec is cach
 -->
 
   <param_set name="CC-Default"> 
-     <param type="double" name="MaxXSec-SafetyFactor">    1.05 </param>
+     <param type="int"    name="ScanWide-NKnotsX">              10 </param>
+     <param type="int"    name="ScanWide-NKnotsQ2">             10 </param>
+     <param type="double" name="ScanWide-Range">               1.3 </param>
+     <param type="int"    name="ScanFine-NKnotsX">              20 </param>
+     <param type="int"    name="ScanFine-NKnotsQ2">             20 </param>
+     <param type="double" name="ScanFine-Range">                5. </param>
+     <param type="double" name="MaxXSec-SafetyFactor">         1.2 </param>
   </param_set>
 
   <param_set name="NC-Default"> 
-     <param type="double" name="MaxXSec-SafetyFactor">    1.05 </param>
+     <param type="int"    name="ScanWide-NKnotsX">              10 </param>
+     <param type="int"    name="ScanWide-NKnotsQ2">             10 </param>
+     <param type="double" name="ScanWide-Range">               1.3 </param>
+     <param type="int"    name="ScanFine-NKnotsX">              20 </param>
+     <param type="int"    name="ScanFine-NKnotsQ2">             20 </param>
+     <param type="double" name="ScanFine-Range">                5. </param>
+     <param type="double" name="MaxXSec-SafetyFactor">         1.2 </param>
   </param_set>
 
 </alg_conf>
