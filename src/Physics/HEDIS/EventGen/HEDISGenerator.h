@@ -25,8 +25,6 @@
 
 #include "math.h"
 
-class TPythia6;
-
 namespace genie {
 
 class HadronizationModelI;
@@ -111,16 +109,10 @@ private:
 
   void AddPrimaryLepton         (GHepRecord * evrec) const;
   void AddFragmentationProducts (GHepRecord * evrec) const;
-  TClonesArray * Hadronize      (GHepRecord * evrec, double W) const;
 
   void LoadConfig (void);
 
-  mutable TPythia6 *             fPythia;     
-
-  bool   fPromptPythiaList;   // Print the list of particles from PYTHIA
-  double fPrimordialKT;       // Width of Gaussian distribution for the primordial transverse momentum kT of partons in the nucleon.
-  double fRemnantPT;          // Width of Gaussian distribution in transverse momentum when a non-trivial target remnant is split into two particles
-  double fMinESinglet;        // It is, with quark masses added, used to define the minimum allowable energy of a colour-singlet parton system.
+  const HadronizationModelI * fHadronizationModel;
 
 };
 
