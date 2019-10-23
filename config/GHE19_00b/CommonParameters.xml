@@ -26,21 +26,24 @@
     <param type="double" name="HEDIS-CKM-Vtd">                               0.00000 </param>
     <param type="double" name="HEDIS-CKM-Vts">                               0.00000 </param>
     <param type="double" name="HEDIS-CKM-Vtb">                               1.00000 </param>
-    <param type="double" name="HEDIS-PYTHIA-Wmin">                                2. </param>
-    <param type="int"    name="HEDIS-PYTHIA-Warnings">                        100000 </param>
-    <param type="int"    name="HEDIS-PYTHIA-Errors">                          100000 </param>
-    <param type="int"    name="HEDIS-PYTHIA-QuarkMass">                            1 </param>
-    <param type="int"    name="HEDIS-PYTHIA-DecayCutOff">                          2 </param>
-    <param type="double" name="HEDIS-PYTHIA-DecayLength">                     0.0003 </param>
+  </param_set>
+
+  <param_set name="HEDIS-PYTHIA">
+    <param type="double" name="Wmin">                                2. </param>
+    <param type="int"    name="Warnings">                        100000 </param>
+    <param type="int"    name="Errors">                          100000 </param>
+    <param type="int"    name="QuarkMass">                            1 </param>
+    <param type="int"    name="DecayCutOff">                          2 </param>
+    <param type="double" name="DecayLength">                     0.0003 </param>
   </param_set>
 
   <param_set name="NUCL">
-    <param type="double" name="NUCL-R0"> 1.4 </param>
-    <param type="double" name="NUCL-NR"> 3.0 </param>
+    <param type="double" name="NUCL-R0">             1.4 </param>
+    <param type="int"    name="VtxGenerationMethod">   0 </param>
   </param_set>
 
   <param_set name="Validation">
-    <param type="double" name="GVLD-Emin">          100.000  </param>
+    <param type="double" name="GVLD-Emin">           100.000  </param>
     <param type="double" name="GVLD-Emax"> 1000000000000.000  </param>
   </param_set>
 

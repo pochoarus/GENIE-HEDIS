@@ -266,12 +266,12 @@ void GLRESGenerator::LoadConfig(void)
 {
 
   // PYTHIA parameters only valid for HEDIS
-  double wmin;        GetParam( "HEDIS-PYTHIA-Wmin",          wmin ) ;
-  int warnings;       GetParam( "HEDIS-PYTHIA-Warnings",      warnings ) ;
-  int errors;         GetParam( "HEDIS-PYTHIA-Errors",        errors ) ;
-  int qrk_mass;       GetParam( "HEDIS-PYTHIA-QuarkMass",     qrk_mass ) ;
-  int decaycut;       GetParam( "HEDIS-PYTHIA-DecayCutOff",   decaycut ) ;
-  double decaylength; GetParam( "HEDIS-PYTHIA-DecayLength",   decaylength ) ;
+  double wmin;        GetParam( "Wmin",          wmin ) ;
+  int warnings;       GetParam( "Warnings",      warnings ) ;
+  int errors;         GetParam( "Errors",        errors ) ;
+  int qrk_mass;       GetParam( "QuarkMass",     qrk_mass ) ;
+  int decaycut;       GetParam( "DecayCutOff",   decaycut ) ;
+  double decaylength; GetParam( "DecayLength",   decaylength ) ;
   fPythia->SetPARP(2,  wmin);         //(D = 10. GeV) lowest c.m. energy for the event as a whole that the program will accept to simulate. (bellow 2GeV pythia crashes)
   fPythia->SetMSTU(26, warnings);     // (Default=10) maximum number of warnings that are printed
   fPythia->SetMSTU(22, errors);       // (Default=10) maximum number of errors that are printed

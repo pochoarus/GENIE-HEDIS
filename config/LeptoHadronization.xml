@@ -9,6 +9,7 @@ Configuration for the LEPTO hadronization model
 -->
 
   <param_set name="Default"> 
+     <param type="string" name="CommonParam">        HEDIS-PYTHIA </param>
      <param type="int"    name="MaxIter-Had">                 100 </param>
      <param type="double" name="Primordial-kT">              0.44 </param>
      <param type="double" name="Remnant-pT">                 0.35 </param>
