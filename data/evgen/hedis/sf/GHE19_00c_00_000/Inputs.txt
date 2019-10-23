@@ -1,27 +1,31 @@
-# NX
-400
-# Xmin
-1e-06
-# NQ2
-400
-# Q2min
-0.1
-# Q2max
-1e+10
 # LHAPDF set
 cteq6
 # LHAPDF member
 0
-# Mass Z
-90.342
+# NLO
+0
+# Mass Scheme
+
+# Quark threshold
+0
+# NX
+400
+# NQ2
+400
+# Xmin
+1e-06
+# Q2min
+0.1
+# Q2max
+1e+10
 # Mass W
 79.177
+# Mass Z
+90.34202
 # Rho
 0
 # Sin2ThW
 0.2319
-# Quark threshold
-0
 # CKM
 0.97467
 0.2236
@@ -32,12 +36,3 @@ cteq6
 0
 0.0447
 0.99989
-# Mass quarks
-0
-0
-0
-0
-1.3
-4.5
-# NLO
-0

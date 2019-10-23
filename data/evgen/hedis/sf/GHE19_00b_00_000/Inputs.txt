@@ -1,0 +1,38 @@
+# LHAPDF set
+HERAPDF15NLO_EIG
+# LHAPDF member
+0
+# NLO
+1
+# Mass Scheme
+CSMS
+# Quark threshold
+1
+# NX
+400
+# NQ2
+400
+# Xmin
+1e-06
+# Q2min
+1
+# Q2max
+1e+09
+# Mass W
+80.398
+# Mass Z
+91.1876
+# Rho
+0
+# Sin2ThW
+0.22308
+# CKM
+0.97467
+0.22361
+0
+0.22361
+0.97467
+0
+0
+0
+1

@@ -51,18 +51,7 @@ namespace genie {
       const XSecIntegratorI *        fXSecIntegrator;     ///< diff. xsec integrator
     
       double fWmin;            ///< Minimum value of W
-
-      string fSFname;          ///< name of the SF directory
-      bool fSFNLO;             ///< SF is computed using LO or NLO
-      int fSFNX;               ///< Number of bins in x for SF grid
-      double fSFXmin;          ///< Minimum value of x for SF grid
-      int fSFNQ2;              ///< Number of bins in Q2 for SF grid
-      double fSFQ2min;         ///< Minimum value of Q2 for SF grid
-      double fSFQ2max;         ///< Maximum value of Q2 for SF grid
-      double fMassW;           ///< Mass of W boson used to compute SF
-      double fMassZ;           ///< Mass of Z boson used to compute SF
-      double fRho;             ///< EM correction for Weinberg angle  used to compute SF
-
+      SF_info fSFinfo;         ///< Information used to computed SF
   };
 
 }       // genie namespace

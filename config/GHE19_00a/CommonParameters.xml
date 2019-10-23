@@ -2,12 +2,31 @@
 
 <common_param_list>
 
-
   <param_set name="Tunable">
-    <param type="string" name="SF-name">                                BGR_s00 </param>
-    <param type="double" name="W-Min">                                        2 </param>
-    <param type="double" name="DlogY">                                     0.01 </param>
-    <param type="double" name="DlogX">                                     0.01 </param>
+    <param type="double" name="HEDIS-W-Min">                                       2 </param>
+    <param type="string" name="HEDIS-LHAPDF-set">    NNPDF31sx_nlo_as_0118_LHCb_nf_6 </param>
+    <param type="int"    name="HEDIS-LHAPDF-member">                               0 </param>
+    <param type="bool"   name="HEDIS-Is-NLO">                                   true </param>
+    <param type="string" name="HEDIS-Scheme">                                    BGR </param>
+    <param type="int"    name="HEDIS-Quark-Threshold">                             2 </param>
+    <param type="int"    name="HEDIS-NGridX">                                    400 </param>
+    <param type="int"    name="HEDIS-NGridQ2">                                   400 </param>
+    <param type="double" name="HEDIS-XGrid-Min">                                1e-9 </param>
+    <param type="double" name="HEDIS-Q2Grid-Min">                             2.6896 </param>
+    <param type="double" name="HEDIS-Q2Grid-Max">                               1e10 </param>
+    <param type="double" name="HEDIS-MassW">                                  80.385 </param>
+    <param type="double" name="HEDIS-MassZ">                                 91.1876 </param>
+    <param type="double" name="HEDIS-Rho">                                0.00940161 </param>
+    <param type="double" name="HEDIS-Sin2ThW">                                    0. </param>
+    <param type="double" name="HEDIS-CKM-Vud">                               0.97427 </param>
+    <param type="double" name="HEDIS-CKM-Vus">                               0.22536 </param>
+    <param type="double" name="HEDIS-CKM-Vub">                               0.00355 </param>
+    <param type="double" name="HEDIS-CKM-Vcd">                               0.22522 </param>
+    <param type="double" name="HEDIS-CKM-Vcs">                               0.97343 </param>
+    <param type="double" name="HEDIS-CKM-Vcb">                               0.04140 </param>
+    <param type="double" name="HEDIS-CKM-Vtd">                               0.00886 </param>
+    <param type="double" name="HEDIS-CKM-Vts">                               0.04050 </param>
+    <param type="double" name="HEDIS-CKM-Vtb">                               0.99914 </param>
   </param_set>
 
   <param_set name="NUCL">

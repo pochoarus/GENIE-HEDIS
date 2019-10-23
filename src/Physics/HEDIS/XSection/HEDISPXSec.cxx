@@ -21,10 +21,6 @@
 #include "Framework/Utils/KineUtils.h"
 
 #include <TMath.h>
-#include <TSystem.h>
-
-
-#include <fstream>
 
 using namespace genie;
 using namespace genie::constants;
@@ -54,7 +50,7 @@ double HEDISPXSec::XSec(
   if(! this -> ValidKinematics (interaction) ) return 0.;
 
   // Load SF tables 
-  HEDISStrucFunc * sf_tbl = HEDISStrucFunc::Instance(fSFname,fSFNLO,fSFNX,fSFXmin,fSFNQ2,fSFQ2min,fSFQ2max);
+  HEDISStrucFunc * sf_tbl = HEDISStrucFunc::Instance(fSFinfo);
 
   // W limits are computed using kinematics assumption.
   // The lower limit is tuneable because hadronization might have issues at low W (as in PYTHIA6).
@@ -83,7 +79,7 @@ double HEDISPXSec::XSec(
   // This is done because at NLO we can only compute the nucleon xsec. But
   // for the hadronization we need the different quark contributions.
   // This could be avoid if a NLO parton showering is introduced.
-  if (fSFNLO && xsec>0.) {
+  if (fSFinfo.IsNLO && xsec>0.) {
     HEDISNucChannel_t nucch  = HEDISChannel::HEDISNucChannel(ch);
     SF_xQ2 sflo  = sf_tbl->EvalNucSFLO(nucch,x,Q2);
     SF_xQ2 sfnlo = sf_tbl->EvalNucSFNLO(nucch,x,Q2);
@@ -96,8 +92,8 @@ double HEDISPXSec::XSec(
 
   // Compute the front factor
   double propagator = 0;
-  if (interaction -> ProcInfo().IsWeakCC()) propagator = TMath::Power( fMassW*fMassW/(Q2+fMassW*fMassW), 2);
-  else                                      propagator = TMath::Power( fMassZ*fMassZ/(Q2+fMassZ*fMassZ)/(1.-fRho), 2);
+  if (interaction -> ProcInfo().IsWeakCC()) propagator = TMath::Power( fSFinfo.MassW*fSFinfo.MassW/(Q2+fSFinfo.MassW*fSFinfo.MassW), 2);
+  else                                      propagator = TMath::Power( fSFinfo.MassZ*fSFinfo.MassZ/(Q2+fSFinfo.MassZ*fSFinfo.MassZ)/(1.-fSFinfo.Rho), 2);
 
   xsec *= kGF2/(2*kPi*x) * propagator;
 
@@ -141,6 +137,7 @@ double HEDISPXSec::Integral(const Interaction * interaction) const
 //____________________________________________________________________________
 bool HEDISPXSec::ValidProcess(const Interaction * interaction) const
 {
+
   if(interaction->TestBit(kISkipProcessChk)) return true;
 
   const ProcessInfo & proc_info  = interaction->ProcInfo();
@@ -178,73 +175,30 @@ void HEDISPXSec::LoadConfig(void)
   assert(fXSecIntegrator);
 
   // Minimum value of W (typically driven by hadronization limitation)
-  GetParamDef("W-Min",    fWmin, 1e-10 );
-  LOG("HEDISXSec", pDEBUG) << "fWmin: " << fWmin;
+  GetParam("HEDIS-W-Min",    fWmin, 0. );
 
-  // Name of the directory where SF tables are saved. 
-  // Then some information from the metafile must be extracted to compute the xsec.
-  GetParamDef("SF-name", fSFname, string("") ) ;
-  fSFname = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/sf/" + fSFname;
-
-  string metaFile = fSFname + "/Inputs.txt";
-  // make sure meta files are available
-  LOG("HEDISPXSec", pDEBUG) << "Checking if file " << metaFile << " exists...";        
-  if ( gSystem->AccessPathName( metaFile.c_str()) ) {
-    LOG("HEDISPXSec", pERROR) << "File doesnt exist";        
-    LOG("HEDISPXSec", pERROR) << "HEDIS package requires precomputation of SF using gMakeStrucFunc";        
-    assert(0);
-  }
-
-  std::ifstream meta_stream(metaFile.c_str(), std::ios::in);
-  string saux;
-  std::getline (meta_stream,saux); //# NX
-  std::getline (meta_stream,saux); fSFNX = atoi(saux.c_str());
-  std::getline (meta_stream,saux); //# Xmin
-  std::getline (meta_stream,saux); fSFXmin = atof(saux.c_str());
-  std::getline (meta_stream,saux); //# NQ2
-  std::getline (meta_stream,saux); fSFNQ2 = atoi(saux.c_str());
-  std::getline (meta_stream,saux); //# Q2min
-  std::getline (meta_stream,saux); fSFQ2min = atof(saux.c_str());
-  std::getline (meta_stream,saux); //# Q2max
-  std::getline (meta_stream,saux); fSFQ2max = atof(saux.c_str());
-  std::getline (meta_stream,saux); //# LHAPDF set
-  std::getline (meta_stream,saux);
-  std::getline (meta_stream,saux); //# LHAPDF member
-  std::getline (meta_stream,saux);
-  std::getline (meta_stream,saux); //# Mass Z
-  std::getline (meta_stream,saux); fMassZ = atof(saux.c_str());
-  std::getline (meta_stream,saux); //# Mass W
-  std::getline (meta_stream,saux); fMassW = atof(saux.c_str());
-  std::getline (meta_stream,saux); //# Mass W
-  std::getline (meta_stream,saux); fRho = atof(saux.c_str());
-  std::getline (meta_stream,saux); //# Sin2ThW
-  std::getline (meta_stream,saux); 
-  std::getline (meta_stream,saux); //# Quark threshold
-  std::getline (meta_stream,saux);
-  std::getline (meta_stream,saux); //# CKM
-  std::getline (meta_stream,saux); 
-  std::getline (meta_stream,saux); 
-  std::getline (meta_stream,saux); 
-  std::getline (meta_stream,saux); 
-  std::getline (meta_stream,saux); 
-  std::getline (meta_stream,saux); 
-  std::getline (meta_stream,saux); 
-  std::getline (meta_stream,saux); 
-  std::getline (meta_stream,saux); 
-  std::getline (meta_stream,saux); //# Mass quarks
-  std::getline (meta_stream,saux); 
-  std::getline (meta_stream,saux); 
-  std::getline (meta_stream,saux); 
-  std::getline (meta_stream,saux); 
-  std::getline (meta_stream,saux); 
-  std::getline (meta_stream,saux); 
-  std::getline (meta_stream,saux); //#NLO
-  std::getline (meta_stream,saux); fSFNLO = (bool)atoi(saux.c_str());
-  if (fSFNLO) {
-    std::getline (meta_stream,saux); //# Mass scheme
-    std::getline (meta_stream,saux);
-  }
-  meta_stream.close();
-
+  GetParam("HEDIS-LHAPDF-set",      fSFinfo.LHAPDFset    );
+  GetParam("HEDIS-LHAPDF-member",   fSFinfo.LHAPDFmember );
+  GetParam("HEDIS-Is-NLO",          fSFinfo.IsNLO        );
+  GetParam("HEDIS-Scheme",          fSFinfo.Scheme       );
+  GetParam("HEDIS-Quark-Threshold", fSFinfo.QrkThrs      );
+  GetParam("HEDIS-NGridX",          fSFinfo.NGridX       );
+  GetParam("HEDIS-NGridQ2",         fSFinfo.NGridQ2      );
+  GetParam("HEDIS-XGrid-Min",       fSFinfo.XGridMin     );
+  GetParam("HEDIS-Q2Grid-Min",      fSFinfo.Q2GridMin    );
+  GetParam("HEDIS-Q2Grid-Max",      fSFinfo.Q2GridMax    );
+  GetParam("HEDIS-MassW",           fSFinfo.MassW        );
+  GetParam("HEDIS-MassZ",           fSFinfo.MassZ        );
+  GetParam("HEDIS-Rho",             fSFinfo.Rho          );
+  GetParam("HEDIS-Sin2ThW",         fSFinfo.Sin2ThW      );
+  GetParam("HEDIS-CKM-Vud",         fSFinfo.Vud          );
+  GetParam("HEDIS-CKM-Vus",         fSFinfo.Vus          );
+  GetParam("HEDIS-CKM-Vub",         fSFinfo.Vub          );
+  GetParam("HEDIS-CKM-Vcd",         fSFinfo.Vcd          );
+  GetParam("HEDIS-CKM-Vcs",         fSFinfo.Vcs          );
+  GetParam("HEDIS-CKM-Vcb",         fSFinfo.Vcb          );
+  GetParam("HEDIS-CKM-Vtd",         fSFinfo.Vtd          );
+  GetParam("HEDIS-CKM-Vts",         fSFinfo.Vts          );
+  GetParam("HEDIS-CKM-Vtb",         fSFinfo.Vtb          );
 
 }

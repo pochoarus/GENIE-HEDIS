@@ -30,16 +30,9 @@
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Physics/XSectionIntegration/GSLXSecFunc.h"
 
-
 #include <TMath.h>
-#include <TFile.h>
-#include <TSystem.h>
-#include <Math/IFunction.h>
-#include <Math/Minimizer.h>
-#include <Math/Factory.h>
 
 #include <string>
-#include <fstream>
 
 using namespace genie;
 using namespace genie::controls;
@@ -257,34 +250,10 @@ void HEDISKinematicsGenerator::LoadConfig(void)
   GetParamDef("ScanFine-NKnotsQ2", fFineNKnotsQ2,   10 ) ;
   GetParamDef("ScanFine-Range",       fFineRange,  10. ) ;
 
-  // The name of the directory in which SF tables are stored is need to extract some 
-  // information from the metafile about the limits of the tables
-  string SFname;
-  GetParamDef("SF-name", SFname, string("") ) ;
-
-  string metaFile = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/sf/" + SFname + "/Inputs.txt";
-  // make sure meta files are available
-  LOG("HEDISKinematics", pDEBUG) << "Checking if file " << metaFile << " exists...";        
-  if ( gSystem->AccessPathName( metaFile.c_str()) ) {
-    LOG("HEDISKinematics", pERROR) << "File doesnt exist";        
-    LOG("HEDISKinematics", pERROR) << "HEDIS package requires precomputation of SF using gMakeStrucFunc";        
-    assert(0);
-  }
-
-  // From the metafile we need the minimum value of x and Q2 in the SF tables.
-  // They are used to restrict the sampling phase space for the kinematics.
-  std::ifstream meta_stream(metaFile.c_str(), std::ios::in);
-  string saux;
-  std::getline (meta_stream,saux); //# NX
-  std::getline (meta_stream,saux);
-  std::getline (meta_stream,saux); //# Xmin
-  std::getline (meta_stream,saux); fSFXmin = atof(saux.c_str());
-  std::getline (meta_stream,saux); //# NQ2
-  std::getline (meta_stream,saux);
-  std::getline (meta_stream,saux); //# Q2min
-  std::getline (meta_stream,saux); fSFQ2min = atof(saux.c_str());
-  std::getline (meta_stream,saux); //# Q2max
-  std::getline (meta_stream,saux); fSFQ2max = atof(saux.c_str());
-  meta_stream.close();
+  // Limits from the SF tables that are useful to reduce computation 
+  // time of the max cross section
+  GetParam("HEDIS-XGrid-Min",  fSFXmin ) ;
+  GetParam("HEDIS-Q2Grid-Min", fSFQ2min ) ;
+  GetParam("HEDIS-Q2Grid-Max", fSFQ2max ) ;
 
 }

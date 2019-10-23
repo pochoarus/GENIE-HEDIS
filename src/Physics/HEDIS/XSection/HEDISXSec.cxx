@@ -29,9 +29,6 @@
 #include <Math/IFunction.h>
 #include <Math/IntegratorMultiDim.h>
 #include "Math/AdaptiveIntegratorMultiDim.h"
-#include <TSystem.h>
-
-#include <fstream>
 
 using namespace genie;
 using namespace genie::constants;
@@ -168,35 +165,10 @@ void HEDISXSec::LoadConfig(void)
   fGSLMaxEval  = (unsigned int) max_eval ;
   fGSLMinEval  = (unsigned int) min_eval ;
 
-  // Name of the directory where SF tables are saved. 
-  // Then some information from the metafile must be extracted to compute the xsec.
-  string SFname;
-  GetParamDef("SF-name", SFname, string("") ) ;
-  SFname = string(gSystem->Getenv("GENIE")) + "/data/evgen/hedis/sf/" + SFname;
-
-  string metaFile = SFname + "/Inputs.txt";
-  // make sure meta files are available
-  LOG("HEDISPXSec", pDEBUG) << "Checking if file " << metaFile << " exists...";        
-  if ( gSystem->AccessPathName( metaFile.c_str()) ) {
-    LOG("HEDISPXSec", pERROR) << "File doesnt exist";        
-    LOG("HEDISPXSec", pERROR) << "HEDIS package requires precomputation of SF using gMakeStrucFunc";        
-    assert(0);
-  }
-
-  std::ifstream meta_stream(metaFile.c_str(), std::ios::in);
-  string saux;
-  std::getline (meta_stream,saux); //# NX
-  std::getline (meta_stream,saux);
-  std::getline (meta_stream,saux); //# Xmin
-  std::getline (meta_stream,saux); fSFXmin = atof(saux.c_str());
-  std::getline (meta_stream,saux); //# NQ2
-  std::getline (meta_stream,saux);
-  std::getline (meta_stream,saux); //# Q2min
-  std::getline (meta_stream,saux); fSFQ2min = atof(saux.c_str());
-  std::getline (meta_stream,saux); //# Q2max
-  std::getline (meta_stream,saux); fSFQ2max = atof(saux.c_str());
-  std::getline (meta_stream,saux); //# LHAPDF set
-
-
+  // Limits from the SF tables that are useful to reduce computation 
+  // time of the total cross section
+  GetParam("HEDIS-XGrid-Min",  fSFXmin ) ;
+  GetParam("HEDIS-Q2Grid-Min", fSFQ2min ) ;
+  GetParam("HEDIS-Q2Grid-Max", fSFQ2max ) ;
 
 }
