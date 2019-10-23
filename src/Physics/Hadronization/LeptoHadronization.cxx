@@ -400,28 +400,30 @@ void LeptoHadronization::LoadConfig(void)
 {
 
 
-  GetParamDef("MaxIter-Had", fMaxIterHad, 100 ) ;
+  GetParam("MaxIter-Had", fMaxIterHad ) ;
 
   // Width of Gaussian distribution for transverse momentums
   // Define in LEPTO with PARL(3) and PARL(14)
-  GetParamDef("Primordial-kT", fPrimordialKT, 0.44 ) ;
-  GetParamDef("Remnant-pT",    fRemnantPT,    0.35 ) ;
+  GetParam("Primordial-kT", fPrimordialKT ) ;
+  GetParam("Remnant-pT",    fRemnantPT ) ;
 
   // It is, with quark masses added, used to define the minimum allowable energy of a colour-singlet parton system.
   GetParam( "Energy-Singlet", fMinESinglet ) ; 
 
   // PYTHIA parameters only valid for HEDIS
-  int warnings;       GetParam( "PYTHIA-Warnings",      warnings    , 100000 ) ;
-  int errors;         GetParam( "PYTHIA-Errors",        errors      , 100000 ) ;
-  int qrk_mass;       GetParam( "PYTHIA-QuarkMass",     qrk_mass    ,      1 ) ;
-  int decaycut;       GetParam( "PYTHIA-DecayCutOff",   decaycut    ,      2 ) ;
-  double decaylength; GetParam( "PYTHIA-DecayLength",   decaylength , 0.0003 ) ;
+  double wmin;        GetParam( "HEDIS-PYTHIA-Wmin",          wmin ) ;
+  int warnings;       GetParam( "HEDIS-PYTHIA-Warnings",      warnings ) ;
+  int errors;         GetParam( "HEDIS-PYTHIA-Errors",        errors ) ;
+  int qrk_mass;       GetParam( "HEDIS-PYTHIA-QuarkMass",     qrk_mass ) ;
+  int decaycut;       GetParam( "HEDIS-PYTHIA-DecayCutOff",   decaycut ) ;
+  double decaylength; GetParam( "HEDIS-PYTHIA-DecayLength",   decaylength ) ;
+  fPythia->SetPARP(2,  wmin);         //(D = 10. GeV) lowest c.m. energy for the event as a whole that the program will accept to simulate. (bellow 2GeV pythia crashes)
   fPythia->SetMSTU(26, warnings);     // (Default=10) maximum number of warnings that are printed
   fPythia->SetMSTU(22, errors);       // (Default=10) maximum number of errors that are printed
   fPythia->SetMSTJ(93, qrk_mass);     // light (d, u, s, c, b) quark masses are taken from PARF(101) - PARF(105) rather than PMAS(1,1) - PMAS(5,1). Diquark masses are given as sum of quark masses, without spin splitting term.
   fPythia->SetMSTJ(22, decaycut);     // (Default=1) cut-off on decay length for a particle that is allowed to decay according to MSTJ(21) and the MDCY value
   fPythia->SetPARJ(71, decaylength);  // (Default=10. mm) maximum average proper lifetime cτ for particles allowed to decay
 
-  GetParamDef("PromptPythiaList", fPromptPythiaList, false ) ;
+  GetParam("PromptPythiaList", fPromptPythiaList ) ;
 
 }

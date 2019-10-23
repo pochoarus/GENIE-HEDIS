@@ -175,8 +175,8 @@ void HEDISPXSec::LoadConfig(void)
   assert(fXSecIntegrator);
 
   // Minimum value of W (typically driven by hadronization limitation)
-  GetParam("HEDIS-W-Min",    fWmin, 0. );
-
+  GetParam("HEDIS-PYTHIA-Wmin",     fWmin);
+  // Information about Structure Functions
   GetParam("HEDIS-LHAPDF-set",      fSFinfo.LHAPDFset    );
   GetParam("HEDIS-LHAPDF-member",   fSFinfo.LHAPDFmember );
   GetParam("HEDIS-Is-NLO",          fSFinfo.IsNLO        );

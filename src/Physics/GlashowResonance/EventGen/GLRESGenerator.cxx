@@ -265,14 +265,19 @@ void GLRESGenerator::Configure(string config)
 void GLRESGenerator::LoadConfig(void)
 {
 
-  fPythia->SetMSTJ(93, 1);   //light (d, u, s, c, b) quark masses are taken from PARF(101) - PARF(105) rather than PMAS(1,1) - PMAS(5,1). Diquark masses are given as sum of quark masses, without spin splitting term.
-  fPythia->SetPARJ(22, 2);   //(Default=1) cut-off on decay length for a particle that is allowed to decay according to MSTJ(21) and the MDCY value
-  fPythia->SetPARJ(32, 0.5); //(Default=1. GeV) is, with quark masses added, used to define the minimum allowable energy of a colour-singlet parton system.
-  fPythia->SetMSTJ(22, 2);  //(Default=1) cut-off on decay length for a particle that is allowed to decay according to MSTJ(21) and the MDCY value
-  fPythia->SetPARJ(71, 0.0003);  //(Default=10. mm) maximum average proper lifetime cτ for particles allowed to decay
-  fPythia->SetMSTU(26, 1000000);  //(Default=10) maximum number of warnings that are printed
-  fPythia->SetMSTU(22, 1000000);  //(Default=10) maximum number of errors that are printed
-  fPythia->SetPARP(2, 2.);  //(D = 10. GeV) lowest c.m. energy for the event as a whole that the program will accept to simulate. (bellow 2GeV pythia crashes)
+  // PYTHIA parameters only valid for HEDIS
+  double wmin;        GetParam( "HEDIS-PYTHIA-Wmin",          wmin ) ;
+  int warnings;       GetParam( "HEDIS-PYTHIA-Warnings",      warnings ) ;
+  int errors;         GetParam( "HEDIS-PYTHIA-Errors",        errors ) ;
+  int qrk_mass;       GetParam( "HEDIS-PYTHIA-QuarkMass",     qrk_mass ) ;
+  int decaycut;       GetParam( "HEDIS-PYTHIA-DecayCutOff",   decaycut ) ;
+  double decaylength; GetParam( "HEDIS-PYTHIA-DecayLength",   decaylength ) ;
+  fPythia->SetPARP(2,  wmin);         //(D = 10. GeV) lowest c.m. energy for the event as a whole that the program will accept to simulate. (bellow 2GeV pythia crashes)
+  fPythia->SetMSTU(26, warnings);     // (Default=10) maximum number of warnings that are printed
+  fPythia->SetMSTU(22, errors);       // (Default=10) maximum number of errors that are printed
+  fPythia->SetMSTJ(93, qrk_mass);     // light (d, u, s, c, b) quark masses are taken from PARF(101) - PARF(105) rather than PMAS(1,1) - PMAS(5,1). Diquark masses are given as sum of quark masses, without spin splitting term.
+  fPythia->SetMSTJ(22, decaycut);     // (Default=1) cut-off on decay length for a particle that is allowed to decay according to MSTJ(21) and the MDCY value
+  fPythia->SetPARJ(71, decaylength);  // (Default=10. mm) maximum average proper lifetime cτ for particles allowed to decay
 
 }
 //____________________________________________________________________________

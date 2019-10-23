@@ -2,14 +2,12 @@
 
 <common_param_list>
 
-
   <param_set name="Tunable">
-    <param type="double" name="HEDIS-W-Min">                                       2 </param>
     <param type="string" name="HEDIS-LHAPDF-set">                              cteq6 </param>
     <param type="int"    name="HEDIS-LHAPDF-member">                               0 </param>
     <param type="bool"   name="HEDIS-Is-NLO">                                  false </param>
     <param type="string" name="HEDIS-Scheme">                                        </param>
-    <param type="int"    name="HEDIS-Quark-Threshold">                             o </param>
+    <param type="int"    name="HEDIS-Quark-Threshold">                             0 </param>
     <param type="int"    name="HEDIS-NGridX">                                    400 </param>
     <param type="int"    name="HEDIS-NGridQ2">                                   400 </param>
     <param type="double" name="HEDIS-XGrid-Min">                                1e-6 </param>
@@ -28,6 +26,12 @@
     <param type="double" name="HEDIS-CKM-Vtd">                               0.00000 </param>
     <param type="double" name="HEDIS-CKM-Vts">                               0.04470 </param>
     <param type="double" name="HEDIS-CKM-Vtb">                               0.99989 </param>
+    <param type="double" name="HEDIS-PYTHIA-Wmin">                                2. </param>
+    <param type="int"    name="HEDIS-PYTHIA-Warnings">                        100000 </param>
+    <param type="int"    name="HEDIS-PYTHIA-Errors">                          100000 </param>
+    <param type="int"    name="HEDIS-PYTHIA-QuarkMass">                            1 </param>
+    <param type="int"    name="HEDIS-PYTHIA-DecayCutOff">                          2 </param>
+    <param type="double" name="HEDIS-PYTHIA-DecayLength">                     0.0003 </param>
   </param_set>
 
   <param_set name="NUCL">

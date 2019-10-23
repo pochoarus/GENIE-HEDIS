@@ -3,7 +3,6 @@
 <common_param_list>
 
   <param_set name="Tunable">
-    <param type="double" name="HEDIS-W-Min">                                       2 </param>
     <param type="string" name="HEDIS-LHAPDF-set">                   HERAPDF15NLO_EIG </param>
     <param type="int"    name="HEDIS-LHAPDF-member">                               0 </param>
     <param type="bool"   name="HEDIS-Is-NLO">                                   true </param>
@@ -27,6 +26,12 @@
     <param type="double" name="HEDIS-CKM-Vtd">                               0.00000 </param>
     <param type="double" name="HEDIS-CKM-Vts">                               0.00000 </param>
     <param type="double" name="HEDIS-CKM-Vtb">                               1.00000 </param>
+    <param type="double" name="HEDIS-PYTHIA-Wmin">                                2. </param>
+    <param type="int"    name="HEDIS-PYTHIA-Warnings">                        100000 </param>
+    <param type="int"    name="HEDIS-PYTHIA-Errors">                          100000 </param>
+    <param type="int"    name="HEDIS-PYTHIA-QuarkMass">                            1 </param>
+    <param type="int"    name="HEDIS-PYTHIA-DecayCutOff">                          2 </param>
+    <param type="double" name="HEDIS-PYTHIA-DecayLength">                     0.0003 </param>
   </param_set>
 
   <param_set name="NUCL">
