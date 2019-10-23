@@ -44,12 +44,6 @@ if( $root_conf_status=~m/enable-pythia6/i )
       { print GBLD   "#define __GENIE_PYTHIA6_ENABLED__\n"; }
 else  { print GBLD "//#define __GENIE_PYTHIA6_ENABLED__\n"; }
 
-# qcdnum enabled?
-#
-if( $root_conf_status=~m/enable-qcdnum/i )
-      { print GBLD   "#define __GENIE_QCDNUM_ENABLED__\n"; }
-else  { print GBLD "//#define __GENIE_QCDNUM_ENABLED__\n"; }
-
 # mysql enabled?
 #
 if( $root_conf_status=~m/enable-mysql/i )
