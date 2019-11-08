@@ -58,14 +58,19 @@ double GLRESPXSec::XSec(
   if(! this -> ValidKinematics (interaction) ) return 0.;
 
   const InitialState & init_state = interaction -> InitState();
-  const Kinematics &   kinematics = interaction -> Kine();
-  const XclsTag &      xclstag    = interaction -> ExclTag();
-
-  int  final_lepton = xclstag.FinalLeptonPdg();
 
   double E     = init_state.ProbeE(kRfLab);
-  double y     = kinematics.y();
   double s     = 2 * kElectronMass * E + kElectronMass2;
+
+  // The W limit is because hadronization might have issues at low W (as in PYTHIA6).
+  // To be consistent the cross section must be computed in the W range where the events are generated.
+  if ( TMath::Sqrt(s)<fWmin ) return 0.;
+
+  const Kinematics &   kinematics = interaction -> Kine();
+  const XclsTag &      xclstag    = interaction -> ExclTag();
+  int  final_lepton = xclstag.FinalLeptonPdg();
+
+  double y     = kinematics.y();
   double s0    = 2 * kElectronMass * E;
 
   double Gw      = PDGLibrary::Instance()->Find(kPdgWM)->Width(); //PDGLibrary::Instance()->Find(kPdgWM)->Width() //genhen=2.124
@@ -179,5 +184,8 @@ void GLRESPXSec::LoadConfig(void)
   //-- load the differential cross section integrator
   fXSecIntegrator = dynamic_cast<const XSecIntegratorI *> (this->SubAlg("XSec-Integrator"));
   assert(fXSecIntegrator);
+
+  GetParam( "Wmin", fWmin ) ;
+
 
 }

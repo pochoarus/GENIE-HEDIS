@@ -96,19 +96,6 @@ void GLRESGenerator::ProcessEventRecord(GHepRecord * evrec) const
   double Wmass = p4_W.M();
   LOG("GLRESGenerator", pINFO) << "Wmass : " << Wmass;
 
-  if( Wmass <= 2. ) {
-    LOG("GLRESGenerator", pWARN) << "Low invariant mass, W = " << Wmass << " GeV!!";
-    
-    evrec->EventFlags()->SetBitNumber(kHadroSysGenErr, true);
-
-    genie::exceptions::EVGThreadException exception;
-    exception.SetReason("Could not simulate the hadronic system");
-    exception.SwitchOnFastForward();
-    throw exception;
-    
-    return;
-  }
-
   // Final state primary lepton PDG code
   int pdgl = interaction->FSPrimLeptonPdg();
   assert(pdgl!=0);
@@ -141,7 +128,7 @@ void GLRESGenerator::ProcessEventRecord(GHepRecord * evrec) const
     RandomGen * rnd = RandomGen::Instance();
     double phi  = 2* M_PIl * rnd->RndLep().Rndm();
     
-    LOG("GLRESGenerator", pNOTICE) << "Q2 = " << Q2 << ", cos(theta) = " << costh << ", phi = " << phi;
+    LOG("GLRESGenerator", pINFO) << "Q2 = " << Q2 << ", cos(theta) = " << costh << ", phi = " << phi;
    
     double plx = pl*sinth*TMath::Cos(phi);
     double ply = pl*sinth*TMath::Sin(phi);
@@ -260,8 +247,6 @@ void GLRESGenerator::ProcessEventRecord(GHepRecord * evrec) const
       double vt = nu->X4()->T() + particle->GetTime()/lightspeed;
       TLorentzVector pos( vx, vy, vz, vt );
 
-      LOG("GLRESGenerator", pDEBUG) << pdgc << "  " << ist << "  " << firstmother << "  " << firstchild;
-
       evrec->AddParticle(pdgc, ist, firstmother, lastmother, firstchild, lastchild, p4, pos );
 
     }
@@ -289,13 +274,11 @@ void GLRESGenerator::LoadConfig(void)
 {
 
   // PYTHIA parameters only valid for HEDIS
-  double wmin;        GetParam( "Wmin",          wmin ) ;
   int warnings;       GetParam( "Warnings",      warnings ) ;
   int errors;         GetParam( "Errors",        errors ) ;
   int qrk_mass;       GetParam( "QuarkMass",     qrk_mass ) ;
   int decaycut;       GetParam( "DecayCutOff",   decaycut ) ;
   double decaylength; GetParam( "DecayLength",   decaylength ) ;
-  fPythia->SetPARP(2,  wmin);         //(D = 10. GeV) lowest c.m. energy for the event as a whole that the program will accept to simulate. (bellow 2GeV pythia crashes)
   fPythia->SetMSTU(26, warnings);     // (Default=10) maximum number of warnings that are printed
   fPythia->SetMSTU(22, errors);       // (Default=10) maximum number of errors that are printed
   fPythia->SetMSTJ(93, qrk_mass);     // light (d, u, s, c, b) quark masses are taken from PARF(101) - PARF(105) rather than PMAS(1,1) - PMAS(5,1). Diquark masses are given as sum of quark masses, without spin splitting term.

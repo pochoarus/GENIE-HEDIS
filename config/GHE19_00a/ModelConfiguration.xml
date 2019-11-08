@@ -22,7 +22,10 @@ STFC, Rutherford Appleton Laboratory
   Specify which cross section model is to be used by each GENIE event generation thread.
   The parameter name is build as: "XSecModel@[name of thread]"
   -->
-  <param type="alg" name="XSecModel@genie::EventGenerator/GLRES">          genie::GLRESPXSec/Default             </param>
+  <param type="alg" name="XSecModel@genie::EventGenerator/GLRES-Mu">       genie::GLRESPXSec/Default            </param>
+  <param type="alg" name="XSecModel@genie::EventGenerator/GLRES-Tau">      genie::GLRESPXSec/Default            </param>
+  <param type="alg" name="XSecModel@genie::EventGenerator/GLRES-Ele">      genie::GLRESPXSec/Default            </param>
+  <param type="alg" name="XSecModel@genie::EventGenerator/GLRES-Had">      genie::GLRESPXSec/Default            </param>
   <param type="alg" name="XSecModel@genie::EventGenerator/HEDIS-CC">       genie::HEDISPXSec/Default            </param>
   <param type="alg" name="XSecModel@genie::EventGenerator/HEDIS-NC">       genie::HEDISPXSec/Default            </param>
 

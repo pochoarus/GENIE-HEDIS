@@ -55,7 +55,6 @@ InteractionList *
 // nuebar + e- -> W- -> nuebar + mu-
 // nuebar + e- -> W- -> nuebar + tau-
 // nuebar + e- -> W- -> hadrons
-  const int NCHANNELS = 4;
 
   if(init_state.ProbePdg() != kPdgAntiNuE) {
      LOG("IntLst", pDEBUG) 
@@ -66,26 +65,38 @@ InteractionList *
   InitialState init(init_state);
   init_state.TgtPtr()->SetHitNucPdg(0);  
 
+  ProcessInfo   proc_info(kScGlashowResonance, kIntWeakCC);
 
   InteractionList * intlist = new InteractionList;
 
-  ProcessInfo   proc_info(kScGlashowResonance, kIntWeakCC);
-  Interaction * interaction = new Interaction(init_state, proc_info);
-
-  int channels[NCHANNELS] = { kPdgElectron, kPdgMuon, kPdgTau, kPdgPiP };
-
-  for (int i=0; i<NCHANNELS; i++) {
-
-    Interaction * intq = new Interaction(*interaction);
-
+  if (fIsMu) {
+    Interaction * interaction = new Interaction(init_state, proc_info);
     XclsTag exclusive_tag;
-    exclusive_tag.SetFinalLepton(channels[i]);
-    intq->SetExclTag(exclusive_tag);
-    intlist->push_back(intq);  
-
+    exclusive_tag.SetFinalLepton(kPdgMuon);
+    interaction->SetExclTag(exclusive_tag);
+    intlist->push_back(interaction);  
   }
-
-  delete interaction; 
+  else if (fIsTau) {
+    Interaction * interaction = new Interaction(init_state, proc_info);
+    XclsTag exclusive_tag;
+    exclusive_tag.SetFinalLepton(kPdgTau);
+    interaction->SetExclTag(exclusive_tag);
+    intlist->push_back(interaction);  
+  }
+  else if (fIsEle) {
+    Interaction * interaction = new Interaction(init_state, proc_info);
+    XclsTag exclusive_tag;
+    exclusive_tag.SetFinalLepton(kPdgElectron);
+    interaction->SetExclTag(exclusive_tag);
+    intlist->push_back(interaction);  
+  }
+  else if (fIsHad) {
+    Interaction * interaction = new Interaction(init_state, proc_info);
+    XclsTag exclusive_tag;
+    exclusive_tag.SetFinalLepton(kPdgPiP);
+    interaction->SetExclTag(exclusive_tag);
+    intlist->push_back(interaction);  
+  }
 
   if(intlist->size() == 0) {
      LOG("IntLst", pERROR)
@@ -99,3 +110,24 @@ InteractionList *
 
 }
 //___________________________________________________________________________
+void GLRESInteractionListGenerator::Configure(const Registry & config)
+{
+  Algorithm::Configure(config);
+  this->LoadConfigData();
+}
+//____________________________________________________________________________
+void GLRESInteractionListGenerator::Configure(string config)
+{
+  Algorithm::Configure(config);
+  this->LoadConfigData();
+}
+//____________________________________________________________________________
+void GLRESInteractionListGenerator::LoadConfigData(void)
+{
+
+  GetParamDef("is-Mu",  fIsMu,  false ) ;
+  GetParamDef("is-Tau", fIsTau, false ) ;
+  GetParamDef("is-Ele", fIsEle, false ) ;
+  GetParamDef("is-Had", fIsHad, false ) ;
+
+}

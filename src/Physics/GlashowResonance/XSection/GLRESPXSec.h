@@ -50,6 +50,9 @@ private:
 
   const XSecIntegratorI *        fXSecIntegrator;     ///< diff. xsec integrator
 
+  double fWmin;            ///< Minimum value of W
+
+
 };
 
 }       // genie namespace
