@@ -1,3 +1,24 @@
+//____________________________________________________________________________
+/*!
+\class    genie::GLRESKinematicsGenerator
+
+\brief    Generates values for the kinematic variables describing Glashow resonance.
+          Is a concrete implementation of the EventRecordVisitorI interface.
+          Part of its implementation, related with the caching and retrieval of
+          previously computed values, is inherited from the KineGeneratorWithCache
+          abstract class.
+
+\author   Alfonso Garcia <alfonsog \at nikhef.nl>
+          NIKHEF (Amsterdam)
+
+\created  November 8, 2019
+
+\cpright  Copyright (c) 2003-2019, The GENIE Collaboration
+          For the full text of the license visit http://copyright.genie-mc.org
+          or see $GENIE/LICENSE
+*/
+//____________________________________________________________________________
+
 #ifndef _GLASHOW_RESONANCE_KINEMATICS_GENERATOR_H_
 #define _GLASHOW_RESONANCE_KINEMATICS_GENERATOR_H_
 
