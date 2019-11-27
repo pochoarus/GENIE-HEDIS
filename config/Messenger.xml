@@ -195,7 +195,7 @@
   <priority msgstream="HEDISXSec">             WARN </priority>
   <priority msgstream="HEDISPXSec">            WARN </priority>
   <priority msgstream="HEDISStrucFunc">        INFO </priority>
-  <priority msgstream="HEDISKinematics">       INFO </priority>
+  <priority msgstream="HEDISKinematics">       WARN </priority>
   <priority msgstream="HEDISGenerator">        ERROR </priority>
   <priority msgstream="GLRESXSec">             WARN   </priority>
   <priority msgstream="GLRESPXSec">            WARN   </priority>
@@ -219,21 +219,8 @@
   <priority msgstream="gspl2root">           DEBUG   </priority>
   <priority msgstream="gmkhedissf">          INFO   </priority>
 
-  <!-- GSeaGen -->
+  <!-- NuPropEarth -->
+  <priority msgstream="ComputeAttenuation">  INFO   </priority>
+  <priority msgstream="IncomingFlux">        INFO   </priority>                                                                                          
 
-  <priority msgstream="GSeaGeometry">          DEBUG   </priority>
-  <priority msgstream="GGenerateEvent">        DEBUG   </priority>
-  <priority msgstream="GGenerateEventGenie">   WARN   </priority>
-  <priority msgstream="GSeaAtmoFlux">          NOTICE   </priority>
-  <priority msgstream="GPropaEarth">           DEBUG   </priority>
-  <priority msgstream="GSeaRealAtmoFlux">      DEBUG   </priority>
-  <priority msgstream="GPEarth">               DEBUG   </priority>
-  <priority msgstream="SeaNtpWriter">          DEBUG   </priority>
-  <priority msgstream="GSeaEvent">             DEBUG   </priority>
-
-  <priority msgstream="gSeaNuEvGen">           DEBUG   </priority>
-  <priority msgstream="gCalCross">             DEBUG   </priority>
-  <priority msgstream="gSeaPropaEarth">        DEBUG   </priority>
-  <priority msgstream="gNuFate">               INFO   </priority>
-
-</messenger_config>
+<messenger_config>
