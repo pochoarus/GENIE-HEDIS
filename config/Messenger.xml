@@ -223,4 +223,4 @@
   <priority msgstream="ComputeAttenuation">  INFO   </priority>
   <priority msgstream="IncomingFlux">        INFO   </priority>                                                                                          
 
-<messenger_config>
+</messenger_config>
