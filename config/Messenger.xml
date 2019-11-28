@@ -87,7 +87,6 @@
   <priority msgstream="FragmRecUtils">         WARN </priority>
   <priority msgstream="GEVGDriver">            WARN </priority>
   <priority msgstream="GMCJDriver">            WARN </priority>
-  <priority msgstream="GTRJDriver">            WARN </priority>
   <priority msgstream="GEVGPool">              WARN   </priority>
   <priority msgstream="GMCJob">                WARN   </priority>
   <priority msgstream="GMCJMonitor">           WARN   </priority>
@@ -214,13 +213,14 @@
   <priority msgstream="grwght1scan">         WARN   </priority>
   <priority msgstream="gtune">               WARN   </priority>
   <priority msgstream="gntpc">               WARN   </priority>
-  <priority msgstream="gmkspl">              DEBUG   </priority>
+  <priority msgstream="gmkspl">              DEBUG  </priority>
   <priority msgstream="gmkspl_dm">           WARN   </priority>
-  <priority msgstream="gspl2root">           DEBUG   </priority>
+  <priority msgstream="gspl2root">           DEBUG  </priority>
   <priority msgstream="gmkhedissf">          INFO   </priority>
 
   <!-- NuPropEarth -->
-  <priority msgstream="ComputeAttenuation">  INFO   </priority>
-  <priority msgstream="IncomingFlux">        INFO   </priority>                                                                                          
+  <priority msgstream="ComputeAttenuation">  INFO  </priority>
+  <priority msgstream="IncomingFlux">        INFO  </priority>                                                                                          
+  <priority msgstream="GTRJDriver">          WARN  </priority>
 
 </messenger_config>
