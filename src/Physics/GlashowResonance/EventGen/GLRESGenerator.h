@@ -20,8 +20,10 @@
 #define _GLASHOW_RESONANCE_GENERATOR_H_
 
 #include <TPythia6.h>
+#include <TComplex.h>
 
 #include "Framework/EventGen/EventRecordVisitorI.h"
+#include "Physics/GlashowResonance/XSection/GLRESBornPXSec.h"
 
 namespace genie {
 
@@ -47,6 +49,13 @@ private:
   void LoadConfig(void);
 
   mutable TPythia6 * fPythia;   ///< PYTHIA6 wrapper class
+
+  bool   fIsNLO;           ///< Flag to choose the LO or NLO computation
+
+  double fQ2PDFmin;
+
+  GLRESBornPXSec * born;
+
 };
 
 }      // genie namespace

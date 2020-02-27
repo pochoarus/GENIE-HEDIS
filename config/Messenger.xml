@@ -197,9 +197,15 @@
   <priority msgstream="HEDISKinematics">       WARN </priority>
   <priority msgstream="HEDISGenerator">        ERROR </priority>
   <priority msgstream="GLRESXSec">             WARN   </priority>
-  <priority msgstream="GLRESPXSec">            WARN   </priority>
+  <priority msgstream="GLRESCohXSec">          WARN  </priority>
+  <priority msgstream="GLRESAtomicPXSec">      WARN   </priority>
+  <priority msgstream="GLRESInelasticPXSec">   WARN  </priority>
+  <priority msgstream="GLRESCoherentPXSec">    WARN   </priority>
+  <priority msgstream="GLRESStrucFunc">        WARN   </priority>
   <priority msgstream="GLRESKinematics">       WARN   </priority>
+  <priority msgstream="GLRESCohKinematics">    WARN   </priority>
   <priority msgstream="GLRESGenerator">        WARN   </priority>
+  <priority msgstream="GLRESCohGenerator">     WARN   </priority>
 
   <priority msgstream="gevgen">              DEBUG </priority>
   <priority msgstream="gevgen_dm">           WARN </priority>
@@ -215,8 +221,9 @@
   <priority msgstream="gntpc">               WARN   </priority>
   <priority msgstream="gmkspl">              DEBUG  </priority>
   <priority msgstream="gmkspl_dm">           WARN   </priority>
-  <priority msgstream="gspl2root">           DEBUG  </priority>
+  <priority msgstream="gspl2root">           INFO  </priority>
   <priority msgstream="gmkhedissf">          INFO   </priority>
+  <priority msgstream="gmkglrersf">          INFO   </priority>
 
   <!-- NuPropEarth -->
   <priority msgstream="ComputeAttenuation">  INFO  </priority>

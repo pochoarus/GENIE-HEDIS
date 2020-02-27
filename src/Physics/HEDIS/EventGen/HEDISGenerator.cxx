@@ -181,7 +181,7 @@ void HEDISGenerator::AddFragmentationProducts(GHepRecord * evrec) const
     int ks   = p->GetKS();
 
     LongLorentzVector p4long( p->GetPx(), p->GetPy(), p->GetPz(), p->GetEnergy()  );
-    p4long.Boost(beta);
+    p4long.BoostZ(beta);
     p4long.Rotate(p4Hadlong);
 
     // Translate from long double to double

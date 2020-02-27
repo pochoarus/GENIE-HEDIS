@@ -131,9 +131,19 @@ bool ProcessInfo::IsInverseBetaDecay(void) const
   return (fScatteringType == kScInverseBetaDecay);
 }
 //____________________________________________________________________________
-bool ProcessInfo::IsGlashowResonance(void) const
+bool ProcessInfo::IsGlashowResonanceAtomic(void) const
 {
-  return (fScatteringType == kScGlashowResonance);
+  return (fScatteringType == kScGlashowResonanceAtomic);
+}
+//____________________________________________________________________________
+bool ProcessInfo::IsGlashowResonanceInel(void) const
+{
+  return (fScatteringType == kScGlashowResonanceInel);
+}
+//____________________________________________________________________________
+bool ProcessInfo::IsGlashowResonanceCoh(void) const
+{
+  return (fScatteringType == kScGlashowResonanceCoh);
 }
 //____________________________________________________________________________
 bool ProcessInfo::IsAMNuGamma(void) const

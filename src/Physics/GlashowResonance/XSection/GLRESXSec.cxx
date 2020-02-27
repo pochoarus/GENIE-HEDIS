@@ -15,7 +15,6 @@
 //____________________________________________________________________________
 
 #include <TMath.h>
-#include <Math/IFunction.h>
 #include <Math/Integrator.h>
 
 #include "Physics/GlashowResonance/XSection/GLRESXSec.h"
@@ -38,6 +37,7 @@
 using namespace genie;
 using namespace genie::controls;
 using namespace genie::constants;
+using namespace genie::utils;
 
 //____________________________________________________________________________
 GLRESXSec::GLRESXSec() :
@@ -69,10 +69,9 @@ double GLRESXSec::Integrate(
   }
 
 
+  const ProcessInfo &  proc_info  = in->ProcInfo();
   const InitialState & init_state = in->InitState();
   double Ev = init_state.ProbeE(kRfLab);
-
-  int NNucl   = init_state.Tgt().Z();
   
   // If the input interaction is off a nuclear target, then chek whether 
   // the corresponding free nucleon cross section already exists at the 
@@ -81,43 +80,56 @@ double GLRESXSec::Integrate(
   //
   XSecSplineList * xsl = XSecSplineList::Instance();
   if( !xsl->IsEmpty() ) {
+
     Interaction * interaction = new Interaction(*in);
     Target * target = interaction->InitStatePtr()->TgtPtr();
-    target->SetId(kPdgTgtFreeP);
+
+    int NNucl = 0;
+    if ( proc_info.IsGlashowResonanceAtomic() ) {
+      NNucl = init_state.Tgt().Z();
+      target->SetId(kPdgTgtFreeP);
+    }
+    else if ( proc_info.IsGlashowResonanceInel() ) {
+      int nucpdgc = init_state.Tgt().HitNucPdg();
+      if (pdg::IsProton(nucpdgc)) {
+        NNucl = init_state.Tgt().Z();
+        target->SetId(kPdgTgtFreeP);
+      }
+      else {
+        NNucl = init_state.Tgt().N();
+        target->SetId(kPdgTgtFreeN);
+      }
+    }
+
     if(xsl->SplineExists(model,interaction)) {
       const Spline * spl = xsl->GetSpline(model, interaction);
       double xsec = spl->Evaluate(Ev);
-      LOG("GLRESXSec", pINFO)  << "From XSecSplineList: XSec[ve-,free nucleon] (E = " << Ev << " GeV) = " << xsec;
+      LOG("GLRESXSec", pINFO)  << "From XSecSplineList: XSec["<<init_state.ProbePdg()<<","<<proc_info.ScatteringTypeAsString()<<","<<interaction->ExclTag().FinalLeptonPdg()<< ",free nucleon] (E = " << Ev << " GeV) = " << xsec;
       if( !interaction->TestBit(kIAssumeFreeNucleon) ) { 
-      	xsec *= NNucl; 
-        LOG("GLRESXSec", pINFO)  << "XSec[ve-] (E = " << Ev << " GeV) = " << xsec;
+        xsec *= NNucl; 
+        LOG("GLRESXSec", pINFO)  << "XSec["<<init_state.ProbePdg()<<","<<proc_info.ScatteringTypeAsString()<<","<<interaction->ExclTag().FinalLeptonPdg()<< "] (E = " << Ev << " GeV) = " << xsec;
       }
       delete interaction;
       return xsec;
     }
     delete interaction;
   }
-
-
-  Range1D_t yl = kps.Limits(kKVy);
-
-  LOG("GLRESXSec", pDEBUG) << "y = (" << yl.min << ", " << yl.max << ")";
-
+   
   Interaction * interaction = new Interaction(*in);
   interaction->SetBit(kISkipProcessChk);
-  //interaction->SetBit(kISkipKinematicChk);
 
-  ROOT::Math::IBaseFunctionOneDim * func = 
-     new utils::gsl::dXSec_dy_E(model, interaction);
-  ROOT::Math::IntegrationOneDim::Type ig_type = 
-     utils::gsl::Integration1DimTypeFromString(fGSLIntgType);
-  ROOT::Math::Integrator ig(*func,ig_type,1,fGSLRelTol,fGSLMaxEval);
-  double xsec = ig.Integral(yl.min, yl.max) * (1E-38 * units::cm2);
+  double xsec = 0.;
+  double kine_min[2] = { -1.,  0. }; 
+  double kine_max[2] = {  1.,  1. }; 
+  ROOT::Math::IBaseFunctionMultiDim * func = new utils::gsl::d2Xsec_GLRES(model, interaction);
+  ROOT::Math::IntegrationMultiDim::Type ig_type = utils::gsl::IntegrationNDimTypeFromString(fGSLIntgType);
+  ROOT::Math::IntegratorMultiDim ig(*func,ig_type,1,fGSLRelTol,fGSLMaxEval);
+  xsec = ig.Integral(kine_min, kine_max) * (1E-38 * units::cm2);
+  delete func;
 
-  LOG("GLRESXSec", pDEBUG) << "*** XSec[ve-] (E=" << interaction->InitState().ProbeE(kRfLab) << ") = " << xsec;
+  LOG("GLRESXSec", pDEBUG) << "*** XSec["<<init_state.ProbePdg()<<","<<proc_info.ScatteringTypeAsString()<<","<<interaction->ExclTag().FinalLeptonPdg()<< "] (E=" << interaction->InitState().ProbeE(kRfLab) << ") = " << xsec * (1E+38/units::cm2) << " x 1E-38 cm^2";
 
   delete interaction;
-  delete func;
   return xsec;
 }
 //____________________________________________________________________________
@@ -141,6 +153,6 @@ void GLRESXSec::LoadConfig(void)
   int max_eval ;
   GetParamDef( "gsl-max-eval", max_eval, 500000 ) ;
   fGSLMaxEval  = (unsigned int) max_eval ;
+
 }
 //____________________________________________________________________________
-

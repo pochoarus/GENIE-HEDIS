@@ -442,10 +442,51 @@ class dXSec_Log_Wrapper: public ROOT::Math::IBaseFunctionMultiDim
     double * fMins;
     double * fMaxes;
 };
+
+//.....................................................................................
+//
+// genie::utils::gsl::d2Xsec_GLRES
+// A 2-D cross section function: d2xsec/dx1dx2 = f(x1,x2)|(fixed E)
+//
+class d2Xsec_GLRES: public ROOT::Math::IBaseFunctionMultiDim
+{
+  public:
+    d2Xsec_GLRES(const XSecAlgorithmI * m, const Interaction * i, double scale=1. );
+   ~d2Xsec_GLRES();
+    // ROOT::Math::IBaseFunctionMultiDim interface
+    unsigned int                        NDim   (void)               const;
+    double                              DoEval (const double * xin) const;
+    ROOT::Math::IBaseFunctionMultiDim * Clone  (void)               const;
+  private:
+    const XSecAlgorithmI * fModel;
+    const Interaction *    fInteraction;
+    double                 fScale; // can set to -1. for use with GSL minimizer
+};
+
+//.....................................................................................
+//
+// genie::utils::gsl::d2Xsec_GLRESCoh
+// A 3-D cross section function: d2xsec/dx1dx2dx3 = f(x1,x2,x3)|(fixed E)
+//
+class d2Xsec_GLRESCoh: public ROOT::Math::IBaseFunctionMultiDim
+{
+  public:
+    d2Xsec_GLRESCoh(const XSecAlgorithmI * m, const Interaction * i, double scale=1. );
+   ~d2Xsec_GLRESCoh();
+    // ROOT::Math::IBaseFunctionMultiDim interface
+    unsigned int                        NDim   (void)               const;
+    double                              DoEval (const double * xin) const;
+    ROOT::Math::IBaseFunctionMultiDim * Clone  (void)               const;
+  private:
+    const XSecAlgorithmI * fModel;
+    const Interaction *    fInteraction;
+    double                 fScale; // can set to -1. for use with GSL minimizer
+};
   
 } // gsl   namespace
 } // utils namespace
 } // genie namespace
+
 
 #endif   
 

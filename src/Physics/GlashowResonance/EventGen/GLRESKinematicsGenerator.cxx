@@ -14,6 +14,9 @@
 */
 //____________________________________________________________________________
 
+#include "Math/Minimizer.h"
+#include "Math/Factory.h"
+
 #include "Physics/GlashowResonance/EventGen/GLRESKinematicsGenerator.h"
 #include "Framework/Conventions/Controls.h"
 #include "Framework/Conventions/KinePhaseSpace.h"
@@ -26,6 +29,7 @@
 #include "Framework/Numerical/RandomGen.h"
 #include "Framework/Utils/KineUtils.h"
 #include "Framework/Utils/Range1.h"
+#include "Physics/XSectionIntegration/GSLXSecFunc.h"
 
 using namespace genie;
 using namespace genie::controls;
@@ -51,10 +55,6 @@ GLRESKinematicsGenerator::~GLRESKinematicsGenerator()
 //___________________________________________________________________________
 void GLRESKinematicsGenerator::ProcessEventRecord(GHepRecord * evrec) const
 {
-  if(fGenerateUniformly) {
-    LOG("GLRESKinematics", pNOTICE)
-          << "Generating kinematics uniformly over the allowed phase space";
-  }
 
   //-- Get the random number generators
   RandomGen * rnd = RandomGen::Instance();
@@ -64,6 +64,8 @@ void GLRESKinematicsGenerator::ProcessEventRecord(GHepRecord * evrec) const
   const EventGeneratorI * evg = rtinfo->RunningThread();
   fXSecModel = evg->CrossSectionAlg();
 
+  Interaction * interaction = evrec->Summary();
+
   //-- For the subsequent kinematic selection with the rejection method:
   //   Calculate the max differential cross section or retrieve it from the
   //   cache. Throw an exception and quit the evg thread if a non-positive
@@ -71,62 +73,65 @@ void GLRESKinematicsGenerator::ProcessEventRecord(GHepRecord * evrec) const
   //   If the kinematics are generated uniformly over the allowed phase
   //   space the max xsec is irrelevant
   double xsec_max = this->MaxXSec(evrec);
-  
-  //-- y range
-  const KPhaseSpace & kps = evrec->Summary()->PhaseSpace();
-  Range1D_t yl = kps.Limits(kKVy);
-  double ymin = yl.min;
-  double ymax = yl.max;
-  double dy   = ymax-ymin;
 
-  double xsec = -1;
-  Interaction * interaction = evrec->Summary();
+  double x1min = -1.;
+  double x1max =  1.;
+  double x2min =  0.;
+  double x2max =  1.;
+  double dx1   = x1max-x1min;
+  double dx2   = x2max-x2min;
 
   //-- Try to select a valid inelastisity y
+  double xsec = -1;
   unsigned int iter = 0;
   bool accept = false;
+  
   while(1) {
-     iter++;
-     if(iter > kRjMaxIterations) {
-        LOG("GLRESKinematics", pWARN)
-              << "*** Could not select a valid y after "
-                                              << iter << " iterations";
-        evrec->EventFlags()->SetBitNumber(kKineGenErr, true);
-        genie::exceptions::EVGThreadException exception;
-        exception.SetReason("Couldn't select kinematics");
-        exception.SwitchOnFastForward();
-        throw exception;
-     }
+    iter++;
+    if(iter > 1000000) {
+      LOG("GLRESKinematics", pWARN)
+            << "*** Could not select a valid y after "
+                                            << iter << " iterations";
+      evrec->EventFlags()->SetBitNumber(kKineGenErr, true);
+      genie::exceptions::EVGThreadException exception;
+      exception.SetReason("Couldn't select kinematics");
+      exception.SwitchOnFastForward();
+      throw exception;
+    }
 
-     double y = ymin + dy * rnd->RndKine().Rndm();
-     interaction->KinePtr()->Sety(y);
+    double x1 = x1min + dx1 * rnd->RndKine().Rndm();
+    double x2 = x2min + dx2 * rnd->RndKine().Rndm();
+    interaction->KinePtr()->SetKV(kKVGLx1,x1);
+    interaction->KinePtr()->SetKV(kKVGLx2,x2);
 
-     LOG("GLRESKinematics", pINFO) << "Trying: y = " << y;
+    LOG("GLRESKinematics", pINFO) << "Trying: x1 = " << x1 << ", x2 = " << x2;
 
-     //-- computing cross section for the current kinematics
-     xsec = fXSecModel->XSec(interaction, kPSyfE);
+    //-- computing cross section for the current kinematics
+    xsec = fXSecModel->XSec(interaction, kPSGLx1x2fE);
 
-     this->AssertXSecLimits(interaction, xsec, xsec_max);
+    this->AssertXSecLimits(interaction, xsec, xsec_max);
 
-     double t = xsec_max * rnd->RndKine().Rndm();
-     LOG("GLRESKinematics", pDEBUG) << "xsec= "<< xsec<< ", J= 1, Rnd= "<< t;
+    double t = xsec_max * rnd->RndKine().Rndm();
+    LOG("GLRESKinematics", pDEBUG) << "xsec= "<< xsec<< ", J= 1, Rnd= "<< t;
 
-     accept = (t<xsec);
+    accept = (t<xsec);
 
-     //-- If the generated kinematics are accepted, finish-up module's job
-     if(accept) {
-        LOG("GLRESKinematics", pINFO) << "Selected: y = " << y;
+    //-- If the generated kinematics are accepted, finish-up module's job
+    if(accept) {
+      LOG("GLRESKinematics", pINFO) << "Selected: x1 = " << x1 << ", x2 = " << x2;
 
-        // set the cross section for the selected kinematics
-        evrec->SetDiffXSec(xsec,kPSyfE);
+      // set the cross section for the selected kinematics
+      evrec->SetDiffXSec(xsec,kPSGLx1x2fE);
 
-        // lock selected kinematics & clear running values
-        interaction->KinePtr()->Sety(y, true);
-        interaction->KinePtr()->ClearRunningValues();
+      // lock selected kinematics & clear running values
+      interaction->KinePtr()->ClearRunningValues();
 
-        return;
-     }
+      LOG("GLRESKinematics", pINFO) << "Bye";
+
+      return;
+    }
   }// iterations
+
 }
 //___________________________________________________________________________
 double GLRESKinematicsGenerator::ComputeMaxXSec(
@@ -140,26 +145,46 @@ double GLRESKinematicsGenerator::ComputeMaxXSec(
 // maximum. The number used in the rejection method will be scaled up by a
 // safety factor. But it needs to be fast - do not use a very small y step.
 
-  const int N  = 100;
-
-  const KPhaseSpace & kps = interaction->PhaseSpace();
-  Range1D_t yl = kps.Limits(kKVy);
-  const double ymin = yl.min;
-  const double ymax = yl.max;
-
   double max_xsec = -1.0;
 
-  double dy = (ymax-ymin)/(N-1);
+  const int Nscan = 100;
+  const int x1min = -1.;
+  const int x1max =  1.;
+  const int x2min =  0.;
+  const int x2max =  1.;
+  const double dx1 = (x1max-x1min)/(double)Nscan;
+  const double dx2 = (x2max-x2min)/(double)
+  Nscan;
 
-  for(int i=0; i<N; i++) {
-    double y = ymin + i * dy;
-    interaction->KinePtr()->Sety(y);
-    double xsec = fXSecModel->XSec(interaction, kPSyfE);
+  double scan_x1 = 0.;
+  double scan_x2 = 0.;
+  for (int i=0; i<Nscan; i++) {
+    double x1 = x1min + dx1*i;
+    for (int j=0; j<Nscan; j++) {
+      double x2 = x2min + dx2*j;
+      interaction->KinePtr()->SetKV(kKVGLx1,x1);
+      interaction->KinePtr()->SetKV(kKVGLx2,x2);
+      double dxsec = fXSecModel->XSec(interaction, kPSGLx1x2fE);
+      if ( dxsec > max_xsec ) {
+        scan_x1 = x1;
+        scan_x2 = x2;
+        max_xsec = dxsec;
+      }    
+    }    
+  }
 
-    SLOG("GLRESKinematics", pDEBUG) << "xsec(y = " << y << ") = " << xsec;
-    max_xsec = TMath::Max(xsec, max_xsec);
-
-  }//y
+  utils::gsl::d2Xsec_GLRES f(fXSecModel,interaction,-1);
+  ROOT::Math::Minimizer * min = ROOT::Math::Factory::CreateMinimizer("Minuit");
+  min->SetFunction( f );
+  min->SetMaxFunctionCalls(10000);
+  min->SetTolerance(0.05);
+  min->SetLimitedVariable ( 0, "x1", scan_x1, 0.001, TMath::Max(-1.,scan_x1-0.1), TMath::Min(1.,scan_x1+0.1));
+  min->SetLimitedVariable ( 1, "x2", scan_x2,   0.1, TMath::Max(-0.,scan_x2-0.1), TMath::Min(1.,scan_x2+0.1));
+  min->Minimize();
+  interaction->KinePtr()->SetKV(kKVGLx1,min->X()[0]);
+  interaction->KinePtr()->SetKV(kKVGLx2,min->X()[1]);
+  max_xsec = fXSecModel->XSec(interaction, kPSGLx1x2fE);
+  SLOG("GLRESKinematics", pDEBUG) << "Minimum found -> x1: " << min->X()[0] << ", x2: " << min->X()[1];
 
   // Apply safety factor, since value retrieved from the cache might
   // correspond to a slightly different energy.

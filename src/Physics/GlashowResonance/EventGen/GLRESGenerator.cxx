@@ -33,6 +33,7 @@
 #include <TMath.h>
 
 #include "Physics/GlashowResonance/EventGen/GLRESGenerator.h"
+#include "Physics/HEDIS/EventGen/HEDISGenerator.h"
 #include "Framework/Conventions/Constants.h"
 #include "Framework/EventGen/EVGThreadException.h"
 #include "Framework/GHEP/GHepStatus.h"
@@ -55,6 +56,7 @@ GLRESGenerator::GLRESGenerator() :
 EventRecordVisitorI("genie::GLRESGenerator")
 {
   this->Initialize();
+  born = new GLRESBornPXSec();
 }
 //___________________________________________________________________________
 GLRESGenerator::GLRESGenerator(string config) :
@@ -81,109 +83,127 @@ void GLRESGenerator::ProcessEventRecord(GHepRecord * evrec) const
 
   Interaction * interaction = evrec->Summary();
   const InitialState & init_state = interaction->InitState();
+  const ProcessInfo & proc_info   = interaction->ProcInfo();
 
   //incoming v & struck particle & remnant nucleus
   GHepParticle * nu     = evrec->Probe();
-  GHepParticle * el     = evrec->HitElectron();
+  GHepParticle * el;
+  if      ( proc_info.IsGlashowResonanceAtomic() ) el = evrec->HitElectron();
+  else if ( proc_info.IsGlashowResonanceInel()   ) el = evrec->HitNucleon();
+
   GHepParticle * target = evrec -> TargetNucleus();
   if(target) evrec->AddParticle(target->Pdg(), kIStStableFinalState, 1,-1,-1,-1, *(target->P4()), *(target->X4()) );
 
-  TLorentzVector p4_nu (* nu->P4());
-  TLorentzVector p4_el (* el->P4());
+  LongLorentzVector p4_nu (nu->P4());
+  LongLorentzVector p4_el (el->P4());
 
-  TLorentzVector p4_W = p4_nu + p4_el;
+  TVector3 unit_nu = nu->P4()->Vect().Unit();
 
-  double Wmass = p4_W.M();
-  LOG("GLRESGenerator", pINFO) << "Wmass : " << Wmass;
+  long double Ev = init_state.ProbeE(kRfLab); 
+
+  long double Mtarget = 0.;
+  long double mlin    = 0.;
+  long double mlout   = interaction->FSPrimLepton()->Mass();
+  if      ( proc_info.IsGlashowResonanceAtomic() ) {
+    if      (pdg::IsNuE  (TMath::Abs(nu->Pdg()))) mlin = kElectronMass;
+    else if (pdg::IsNuMu (TMath::Abs(nu->Pdg()))) mlin = kMuonMass;
+    else if (pdg::IsNuTau(TMath::Abs(nu->Pdg()))) mlin = kTauMass;
+    Mtarget = mlin;
+  }
+  else if ( proc_info.IsGlashowResonanceInel()) {
+    Mtarget = init_state.Tgt().HitNucMass();
+  }
+  
+  long double s = 2 * Mtarget * Ev + Mtarget*Mtarget;
+
+  long double x1 = interaction->Kine().GetKV(kKVGLx1);
+  long double x2 = interaction->Kine().GetKV(kKVGLx2);
+
+  long double costh = x1;
+  long double sinth = sqrtl(1-costh*costh);
+  
+  long double s_r = s;
+  if (proc_info.IsGlashowResonanceAtomic()) {
+    if (fIsNLO) {
+      long double t = born->GetT(0.,mlin,mlout,0.,s,x1);
+      long double zeta  = born->GetReAlpha()/kPi*(2.0*logl(sqrtl(-t)/kElectronMass)-1.0);
+      long double omx   = powl(x2, 1.0/zeta );
+      s_r *= ( 1.-omx );
+    }
+  }
+  else if (proc_info.IsGlashowResonanceInel()) {
+    long double xmin = fQ2PDFmin/2./Ev/Mtarget;
+    long double x = expl( logl(xmin) + (logl(1.0)-logl(xmin))*x2 );
+    s_r *= x; 
+  }
+
+  // Boost velocity CM -> LAB
+  long double EvCM = (s_r-mlin*mlin)/sqrtl(s_r)/2.;
+  long double beta = (powl(Ev,2)-powl(EvCM,2))/(powl(Ev,2)+powl(EvCM,2));
 
   // Final state primary lepton PDG code
   int pdgl = interaction->FSPrimLeptonPdg();
   assert(pdgl!=0);
 
-  LOG("GLRESGenerator", pINFO) << "Channel : " << interaction->FSPrimLeptonPdg();
+  if ( pdg::IsElectron(TMath::Abs(pdgl)) || pdg::IsMuon(TMath::Abs(pdgl)) || pdg::IsTau(TMath::Abs(pdgl)) ) {
 
-  if ( pdg::IsElectron(pdgl) || pdg::IsMuon(pdgl) || pdg::IsTau(pdgl) ) {
+    long double Elpout = (s_r+mlout*mlout)/sqrtl(s_r)/2.;
+    long double Enuout = (s_r-mlout*mlout)/sqrtl(s_r)/2.;
+    LongLorentzVector p4_lpout( 0.,  Enuout*sinth,  Enuout*costh, Elpout );
+    LongLorentzVector p4_nuout( 0., -Enuout*sinth, -Enuout*costh, Enuout );
 
-    // Get selected kinematics
-    double y = interaction->Kine().y(true);
-    assert(y>0 && y<1);
-  
-    // Compute the neutrino and muon energy
-    double Ev  = (long double) init_state.ProbeE(kRfLab); 
-    double El  = y*Ev;
+    p4_lpout.BoostZ(beta);
+    p4_nuout.BoostZ(beta);
 
-    LOG("GLRESGenerator", pINFO) << "Ev = " << Ev << ", y = " << y << ", -> El = " << El;
-    
-    // Compute the momentum transfer and scattering angle
-    double El2   = TMath::Power(El,2);
-    double me    = (long double) kElectronMass;
-    double ml    = (long double) interaction->FSPrimLepton()->Mass();
-    double ml2   = TMath::Power(ml,2);
-    double pl    = TMath::Sqrt(El2-ml2);   
-    
-    double Q2    = 2*(Ev-El)*me + me*me;
-    double costh = (El-0.5*(Q2+ml2)/Ev)/pl;
-    double sinth = TMath::Sqrt( 1-TMath::Power(costh,2.) );
+    TLorentzVector p4lp_o( (double)p4_lpout.Px(), (double)p4_lpout.Py(), (double)p4_lpout.Pz(), (double)p4_lpout.E() );
+    TLorentzVector p4nu_o( (double)p4_nuout.Px(), (double)p4_nuout.Py(), (double)p4_nuout.Pz(), (double)p4_nuout.E() );
+
     // Randomize transverse components
     RandomGen * rnd = RandomGen::Instance();
-    double phi  = 2* M_PIl * rnd->RndLep().Rndm();
-    
-    LOG("GLRESGenerator", pINFO) << "Q2 = " << Q2 << ", cos(theta) = " << costh << ", phi = " << phi;
-   
-    double plx = pl*sinth*TMath::Cos(phi);
-    double ply = pl*sinth*TMath::Sin(phi);
-    double plz = pl*costh;
+    double phi  = 2* kPi * rnd->RndLep().Rndm();
+    p4lp_o.RotateZ(phi);
+    p4nu_o.RotateZ(phi);
 
-    //rotate from LAB (where neutrino is [0,0,E,E]) to LAB' (where neutrino is [px,py,pz,E])
-    TVector3 unit_nudir = p4_nu.Vect().Unit(); 
-    TVector3 p3l(plx,ply,plz);
-    p3l.RotateUz(unit_nudir);
-
-    TLorentzVector p4_lpout( p3l, El );
-    TLorentzVector p4_nuout = p4_nu + p4_el - p4_lpout;
+    //rotate from LAB=[0,0,Ev,Ev]->[px,py,pz,E]
+    p4lp_o.RotateUz(unit_nu);
+    p4nu_o.RotateUz(unit_nu);
 
     int pdgvout = 0;
     if      ( pdg::IsElectron(pdgl) ) pdgvout = kPdgAntiNuE;
+    else if ( pdg::IsPositron(pdgl) ) pdgvout = kPdgNuE;
     else if ( pdg::IsMuon(pdgl)     ) pdgvout = kPdgAntiNuMu;
+    else if ( pdg::IsAntiMuon(pdgl) ) pdgvout = kPdgNuMu;
     else if ( pdg::IsTau(pdgl)      ) pdgvout = kPdgAntiNuTau;
+    else if ( pdg::IsAntiTau(pdgl)  ) pdgvout = kPdgNuTau;
+
+    int pdgboson = pdg::IsNeutrino(init_state.ProbePdg()) ? kPdgWP : kPdgWM;
 
     // Create a GHepParticle and add it to the event record
-    evrec->AddParticle( kPdgWM,  kIStDecayedState,     0, -1,  5,  6, p4_W,     *(nu->X4()) ); //W [mothers: nuebar_in,e_in][daugthers: nulbar_out,lp_out]
-    evrec->AddParticle( pdgvout, kIStStableFinalState, 4, -1, -1, -1, p4_nuout, *(nu->X4()) );
-    evrec->AddParticle( pdgl,    kIStStableFinalState, 4, -1, -1, -1, p4_lpout, *(nu->X4()) );
-    evrec->Summary()->KinePtr()->SetFSLeptonP4(p4_lpout);
+    evrec->AddParticle( pdgboson, kIStDecayedState,     0, -1,  5,  6, *nu->P4()+*el->P4(), *(nu->X4()) ); //W [mothers: nuebar_in,e_in][daugthers: nulbar_out,lp_out]
+    evrec->AddParticle( pdgl,     kIStStableFinalState, 4, -1, -1, -1, p4lp_o,              *(nu->X4()) );
+    evrec->AddParticle( pdgvout,  kIStStableFinalState, 4, -1, -1, -1, p4nu_o,              *(nu->X4()) );
+    evrec->Summary()->KinePtr()->SetFSLeptonP4(p4lp_o);
 
   }
   else {
 
-    char p6frame[10], p6nu[10], p6tgt[10];
+    char p6frame[10];
     strcpy(p6frame, "CMS"    );
-    strcpy(p6nu,    "nu_ebar");
-    strcpy(p6tgt,   "e-"     );
-    fPythia->Pyinit(p6frame, p6nu, p6tgt, (double)Wmass);
+
+    char p6nu[10], p6tgt[10];
+    if      (pdg::IsAntiNeutrino(nu->Pdg())) { strcpy(p6nu, "nu_ebar");   strcpy(p6tgt, "e-");   }
+    else if (pdg::IsNeutrino    (nu->Pdg())) { strcpy(p6nu, "nu_e");      strcpy(p6tgt, "e+");   }
+
+    fPythia->Pyinit(p6frame, p6nu, p6tgt, sqrtl(s_r));
     
-    fPythia->SetMDME(206,1,0); //swicht off W decay leptonic modes
-    fPythia->SetMDME(207,1,0); 
-    fPythia->SetMDME(208,1,0); 
-
     fPythia->Pyevnt();
-    //fPythia->Pylist(2);
-
-    fPythia->SetMDME(206,1,1); //swicht them back on
-    fPythia->SetMDME(207,1,1); 
-    fPythia->SetMDME(208,1,1); 
+    //fPythia->Pylist(3);
 
     // get LUJETS record
     fPythia->GetPrimaries();
     TClonesArray * pythia_particles = (TClonesArray *) fPythia->ImportParticles("All");
     int np = pythia_particles->GetEntries();
     assert(np>0);
-
-    // Vector defining rotation from LAB to LAB' (z:= \vec{resonance momentum})
-    TVector3 unit_Wdir = p4_W.Vect().Unit();
-
-    // Boost velocity LAB' -> Resonance rest frame
-    TVector3 beta(0,0,p4_W.P()/p4_W.Energy());
 
     TMCParticle * particle = 0;
     TIter piter(pythia_particles);
@@ -194,20 +214,20 @@ void GLRESGenerator::ProcessEventRecord(GHepRecord * evrec) const
 
       if ( ks==21 ) { continue; } //we dont want to save first particles from pythia (init states)
 
-      TLorentzVector p4o(particle->GetPx(), particle->GetPy(), particle->GetPz(), particle->GetEnergy());
-      p4o.Boost(beta); 
-      TVector3 p3 = p4o.Vect();
-      p3.RotateUz(unit_Wdir); 
-      TLorentzVector p4(p3,p4o.Energy());
+      LongLorentzVector p4longo(particle->GetPx(), particle->GetPy(), particle->GetPz(), particle->GetEnergy());
+      p4longo.BoostZ(beta); 
 
+      TLorentzVector p4o( (double)p4longo.Px(), (double)p4longo.Py(), (double)p4longo.Pz(), (double)p4longo.E() );
+      p4o.RotateUz(unit_nu); 
+     
       TParticlePDG * part = PDGLibrary::Instance()->Find(pdgc);
-      if ( (ks==1 || ks==4) && p4.E() < part->Mass() ) {
+      if ( (ks==1 || ks==4) && p4o.E() < part->Mass() ) {
         LOG("GLRESGenerator", pWARN) << "Putting at rest one stable particle generated by PYTHIA because E < m";
         LOG("GLRESGenerator", pWARN) << "PDG = " << pdgc << " // State = " << ks;
-        LOG("GLRESGenerator", pWARN) << "E = " << p4.E() << " // |p| = " << TMath::Sqrt(p4.P()); 
-        LOG("GLRESGenerator", pWARN) << "p = [ " << p4.Px() << " , "  << p4.Py() << " , "  << p4.Pz() << " ]";
-        LOG("GLRESGenerator", pWARN) << "m    = " << p4.M() << " // mpdg = " << part->Mass();
-        p4.SetXYZT(0,0,0,part->Mass());
+        LOG("GLRESGenerator", pWARN) << "E = " << p4o.E() << " // |p| = " << TMath::Sqrt(p4o.P()); 
+        LOG("GLRESGenerator", pWARN) << "p = [ " << p4o.Px() << " , "  << p4o.Py() << " , "  << p4o.Pz() << " ]";
+        LOG("GLRESGenerator", pWARN) << "m    = " << p4o.M() << " // mpdg = " << part->Mass();
+        p4o.SetXYZT(0,0,0,part->Mass());
       }
 
       // copy final state particles to the event record
@@ -247,15 +267,15 @@ void GLRESGenerator::ProcessEventRecord(GHepRecord * evrec) const
       double vt = nu->X4()->T() + particle->GetTime()/lightspeed;
       TLorentzVector pos( vx, vy, vz, vt );
 
-      evrec->AddParticle(pdgc, ist, firstmother, lastmother, firstchild, lastchild, p4, pos );
+      evrec->AddParticle(pdgc, ist, firstmother, lastmother, firstchild, lastchild, p4o, pos );
 
     }
   
     delete particle;
     pythia_particles->Clear("C");
 
-
   }
+
 }
 //___________________________________________________________________________
 void GLRESGenerator::Configure(const Registry & config)
@@ -274,16 +294,32 @@ void GLRESGenerator::LoadConfig(void)
 {
 
   // PYTHIA parameters only valid for HEDIS
+  double wmin;        GetParam( "Wmin",          wmin ) ;
   int warnings;       GetParam( "Warnings",      warnings ) ;
   int errors;         GetParam( "Errors",        errors ) ;
   int qrk_mass;       GetParam( "QuarkMass",     qrk_mass ) ;
   int decaycut;       GetParam( "DecayCutOff",   decaycut ) ;
   double decaylength; GetParam( "DecayLength",   decaylength ) ;
+  fPythia->SetPARP(2,  wmin);         //(D = 10. GeV) lowest c.m. energy for the event as a whole that the program will accept to simulate. (bellow 2GeV pythia crashes)
   fPythia->SetMSTU(26, warnings);     // (Default=10) maximum number of warnings that are printed
   fPythia->SetMSTU(22, errors);       // (Default=10) maximum number of errors that are printed
   fPythia->SetMSTJ(93, qrk_mass);     // light (d, u, s, c, b) quark masses are taken from PARF(101) - PARF(105) rather than PMAS(1,1) - PMAS(5,1). Diquark masses are given as sum of quark masses, without spin splitting term.
   fPythia->SetMSTJ(22, decaycut);     // (Default=1) cut-off on decay length for a particle that is allowed to decay according to MSTJ(21) and the MDCY value
   fPythia->SetPARJ(71, decaylength);  // (Default=10. mm) maximum average proper lifetime cτ for particles allowed to decay
+
+  fPythia->SetMSTP(61,0);             // (Default=2) master switch for initial-state QCD and QED radiation.
+  fPythia->SetMSTP(71,0);             // (Default=2) master switch for initial-state QCD and QED radiation.
+  fPythia->SetMDME(206,1,0);          //swicht off W decay leptonic modes
+  fPythia->SetMDME(207,1,0); 
+  fPythia->SetMDME(208,1,0); 
+  fPythia->SetMDME(192,1,0);          //swicht off W decay to top
+  fPythia->SetMDME(196,1,0); 
+  fPythia->SetMDME(200,1,0); 
+
+  fPythia->SetPMAS(24,1,kMw); //mass of the W boson (pythia=80.450 // genie=80.385)
+
+  GetParam( "GLRESAtomic-Is-NLO", fIsNLO );
+  GetParam( "HEDIS-Q2Grid-Min", fQ2PDFmin );
 
 }
 //____________________________________________________________________________

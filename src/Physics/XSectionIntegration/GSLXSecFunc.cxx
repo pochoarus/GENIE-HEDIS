@@ -996,6 +996,100 @@ ROOT::Math::IBaseFunctionMultiDim * genie::utils::gsl::dXSec_Log_Wrapper::Clone 
 {
   return new dXSec_Log_Wrapper(fFn,fIfLog,fMins,fMaxes);
 }
-    
+//_____________________________________________________________________________
+genie::utils::gsl::d2Xsec_GLRES::d2Xsec_GLRES(
+     const XSecAlgorithmI * m, const Interaction * i, double scale) :
+ROOT::Math::IBaseFunctionMultiDim(),
+fModel(m),
+fInteraction(i),
+fScale(scale)
+{
+  
+}
 //____________________________________________________________________________
+genie::utils::gsl::d2Xsec_GLRES::~d2Xsec_GLRES()
+{
+  
+}   
+//____________________________________________________________________________
+unsigned int genie::utils::gsl::d2Xsec_GLRES::NDim(void) const
+{
+  return 2;
+}
+//____________________________________________________________________________
+double genie::utils::gsl::d2Xsec_GLRES::DoEval(const double * xin) const
+{
+// inputs:
+//    x1
+//    x2
+// outputs:
+//   differential cross section (hbar=c=1 units)
+//
+ 
+  double x1 = xin[0];
+  double x2 = xin[1];
 
+  Kinematics * kinematics = fInteraction->KinePtr();
+  kinematics->SetKV(kKVGLx1, x1);
+  kinematics->SetKV(kKVGLx2, x2);
+  
+  double xsec = fModel->XSec(fInteraction, kPSGLx1x2fE); 
+  return fScale*xsec/(1E-38 * units::cm2);
+}
+//____________________________________________________________________________
+ROOT::Math::IBaseFunctionMultiDim *
+   genie::utils::gsl::d2Xsec_GLRES::Clone() const
+{
+  return
+    new genie::utils::gsl::d2Xsec_GLRES(fModel,fInteraction);
+}
+//_____________________________________________________________________________
+genie::utils::gsl::d2Xsec_GLRESCoh::d2Xsec_GLRESCoh(
+     const XSecAlgorithmI * m, const Interaction * i, double scale) :
+ROOT::Math::IBaseFunctionMultiDim(),
+fModel(m),
+fInteraction(i),
+fScale(scale)
+{
+  
+}
+//____________________________________________________________________________
+genie::utils::gsl::d2Xsec_GLRESCoh::~d2Xsec_GLRESCoh()
+{
+  
+}   
+//____________________________________________________________________________
+unsigned int genie::utils::gsl::d2Xsec_GLRESCoh::NDim(void) const
+{
+  return 3;
+}
+//____________________________________________________________________________
+double genie::utils::gsl::d2Xsec_GLRESCoh::DoEval(const double * xin) const
+{
+// inputs:
+//    x1
+//    x2
+//    x3
+// outputs:
+//   differential cross section (hbar=c=1 units)
+//
+ 
+  double x1 = xin[0];
+  double x2 = xin[1];
+  double x3 = xin[2];
+
+  Kinematics * kinematics = fInteraction->KinePtr();
+  kinematics->SetKV(kKVGLx1, x1);
+  kinematics->SetKV(kKVGLx2, x2);
+  kinematics->SetKV(kKVGLx3, x3);
+
+  double xsec = fModel->XSec(fInteraction, kPSGLx1x2x3fE); 
+  return fScale*xsec/(1E-38 * units::cm2);
+}
+//____________________________________________________________________________
+ROOT::Math::IBaseFunctionMultiDim *
+   genie::utils::gsl::d2Xsec_GLRESCoh::Clone() const
+{
+  return
+    new genie::utils::gsl::d2Xsec_GLRESCoh(fModel,fInteraction);
+}

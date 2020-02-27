@@ -31,6 +31,7 @@ TGT_BASE =  gevgen          \
             gntpc           \
             gpdfcomp        \
             gsfcomp         \
+            gmkglressf       \
             gmkhedissf
 
 ifeq ($(strip $(GOPT_ENABLE_FNAL)),YES)
@@ -89,6 +90,9 @@ all: $(TGT)
 #
 $(GENIE_BIN_PATH)/gevgen: gEvGen.o $(call find_libs,gevgen)
 	@echo "** Building gevgen"
+	@echo $(FORT_LIBRARIES)
+	@echo $(APFEL_LIBRARIES)
+	@echo $(LIBRARIES)
 	$(LD) $(LDFLAGS) gEvGen.o $(LIBRARIES) -o $(GENIE_BIN_PATH)/gevgen
 
 # neutrino event generation app for Fermilab experiments (DUNE, or experiments in NuMI and Booster beamlines)
@@ -239,6 +243,11 @@ $(GENIE_BIN_PATH)/gmkhedissf: gMakeHEDISStrucFunc.o $(call find_libs,gmkhedissf)
 	@echo "** Building gmkhedissf"
 	$(LD) $(LDFLAGS) gMakeHEDISStrucFunc.o $(LIBRARIES) -o $(GENIE_BIN_PATH)/gmkhedissf
 
+# App to create structure functions suitable for GLRES
+#
+$(GENIE_BIN_PATH)/gmkglressf: gMakeGLRESStrucFunc.o $(call find_libs,gmkglressf)
+	@echo "** Building gmkglressf"
+	$(LD) $(LDFLAGS) gMakeGLRESStrucFunc.o $(LIBRARIES) -o $(GENIE_BIN_PATH)/gmkglressf
 
 # CLEANING-UP
 

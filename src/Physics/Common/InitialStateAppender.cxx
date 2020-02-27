@@ -96,7 +96,7 @@ void InitialStateAppender::AddNucleus(GHepRecord * evrec) const
   const ProcessInfo & proc_info   = interaction->ProcInfo();
 
   bool is_nucleus = init_state.Tgt().IsNucleus();
-  if(!is_nucleus && !proc_info.IsGlashowResonance() ) {
+  if(!is_nucleus && !proc_info.IsGlashowResonanceAtomic() && !proc_info.IsGlashowResonanceInel() && !proc_info.IsGlashowResonanceCoh() ) {
     LOG("ISApp", pINFO)
          << "Not an interaction with a nuclear target - no nucleus to add";
     return;
@@ -122,7 +122,7 @@ void InitialStateAppender::AddStruckParticle(GHepRecord * evrec) const
   bool hit_e = proc_info.IsInverseMuDecay()    ||
                proc_info.IsIMDAnnihilation()   ||
                proc_info.IsNuElectronElastic() ||
-               proc_info.IsGlashowResonance();
+               proc_info.IsGlashowResonanceAtomic();
 
   if(hit_e) {
     int    pdgc = kPdgElectron;
@@ -141,7 +141,7 @@ void InitialStateAppender::AddStruckParticle(GHepRecord * evrec) const
 
     bool is_nucleus = init_state.Tgt().IsNucleus();
 
-    GHepStatus_t ist   = (is_nucleus) ? kIStNucleonTarget : kIStInitialState;
+    GHepStatus_t ist   = (is_nucleus || proc_info.IsGlashowResonanceInel() || proc_info.IsGlashowResonanceCoh() ) ? kIStNucleonTarget : kIStInitialState;
     int          imom1 = (is_nucleus) ? 1 : -1;
     int          imom2 = -1;
 

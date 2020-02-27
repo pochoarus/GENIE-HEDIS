@@ -22,12 +22,17 @@ STFC, Rutherford Appleton Laboratory
   Specify which cross section model is to be used by each GENIE event generation thread.
   The parameter name is build as: "XSecModel@[name of thread]"
   -->
-  <param type="alg" name="XSecModel@genie::EventGenerator/GLRES-Mu">       genie::GLRESPXSec/Default            </param>
-  <param type="alg" name="XSecModel@genie::EventGenerator/GLRES-Tau">      genie::GLRESPXSec/Default            </param>
-  <param type="alg" name="XSecModel@genie::EventGenerator/GLRES-Ele">      genie::GLRESPXSec/Default            </param>
-  <param type="alg" name="XSecModel@genie::EventGenerator/GLRES-Had">      genie::GLRESPXSec/Default            </param>
-  <param type="alg" name="XSecModel@genie::EventGenerator/HEDIS-CC">       genie::HEDISPXSec/Default            </param>
-  <param type="alg" name="XSecModel@genie::EventGenerator/HEDIS-NC">       genie::HEDISPXSec/Default            </param>
+  <param type="alg" name="XSecModel@genie::EventGenerator/GLRESAtomic-Mu">  genie::GLRESAtomicPXSec/Default      </param>
+  <param type="alg" name="XSecModel@genie::EventGenerator/GLRESAtomic-Tau"> genie::GLRESAtomicPXSec/Default      </param>
+  <param type="alg" name="XSecModel@genie::EventGenerator/GLRESAtomic-Ele"> genie::GLRESAtomicPXSec/Default      </param>
+  <param type="alg" name="XSecModel@genie::EventGenerator/GLRESAtomic-Had"> genie::GLRESAtomicPXSec/Default      </param>
+  <param type="alg" name="XSecModel@genie::EventGenerator/GLRESInel-Mu">    genie::GLRESInelasticPXSec/Default   </param>
+  <param type="alg" name="XSecModel@genie::EventGenerator/GLRESInel-Tau">   genie::GLRESInelasticPXSec/Default   </param>
+  <param type="alg" name="XSecModel@genie::EventGenerator/GLRESInel-Ele">   genie::GLRESInelasticPXSec/Default   </param>
+  <param type="alg" name="XSecModel@genie::EventGenerator/GLRESInel-Had">   genie::GLRESInelasticPXSec/Default   </param>
+  <param type="alg" name="XSecModel@genie::EventGenerator/GLRESCoh">        genie::GLRESCoherentPXSec/Default    </param>
+  <param type="alg" name="XSecModel@genie::EventGenerator/HEDIS-CC">        genie::HEDISPXSec/Default            </param>
+  <param type="alg" name="XSecModel@genie::EventGenerator/HEDIS-NC">        genie::HEDISPXSec/Default            </param>
 
  </param_set>
 

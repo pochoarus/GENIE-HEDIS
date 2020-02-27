@@ -33,6 +33,10 @@ public :
   GLRESKinematicsGenerator(string config);
  ~GLRESKinematicsGenerator();
 
+  //-- overload KineGeneratorWithCache methods
+  double ComputeMaxXSec (const Interaction * in) const;
+  double Energy         (const Interaction * in) const;
+
   //-- implement the EventRecordVisitorI interface
   void ProcessEventRecord(GHepRecord * event_rec) const;
 
@@ -41,14 +45,11 @@ public :
   void Configure(const Registry & config);
   void Configure(string config);
 
-public:
+private:
 
   //-- methods to load sub-algorithms and config data from the Registry
   void   LoadConfig (void);
 
-  //-- overload KineGeneratorWithCache methods
-  double ComputeMaxXSec (const Interaction * in) const;
-  double Energy         (const Interaction * in) const;
 };
 
 }      // genie namespace

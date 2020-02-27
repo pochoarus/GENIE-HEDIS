@@ -26,6 +26,8 @@
     <param type="double" name="HEDIS-CKM-Vtd">                               0.00000 </param>
     <param type="double" name="HEDIS-CKM-Vts">                               0.00000 </param>
     <param type="double" name="HEDIS-CKM-Vtb">                               1.00000 </param>
+    <param type="bool"   name="GLRESAtomic-Is-NLO">                             true </param>
+    <param type="bool"   name="GLRESCoh-Is-EPA">                               false </param>
   </param_set>
 
   <param_set name="HEDIS-PYTHIA">

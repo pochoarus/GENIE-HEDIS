@@ -34,6 +34,9 @@
 
 namespace genie {
 
+class XSecAlgorithmI;
+class Interaction;
+
 class GLRESXSec : public XSecIntegratorI {
 
 public:
@@ -51,7 +54,9 @@ public:
 
 private:
   void LoadConfig (void);
+
 };
 
 }       // genie namespace
+
 #endif  // _GLASHOW_RESONANCE_XSEC_H_

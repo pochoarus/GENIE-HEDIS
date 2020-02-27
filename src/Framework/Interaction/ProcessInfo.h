@@ -70,7 +70,9 @@ public:
   bool IsInverseMuDecay          (void) const;
   bool IsIMDAnnihilation         (void) const;
   bool IsInverseBetaDecay        (void) const;
-  bool IsGlashowResonance        (void) const;
+  bool IsGlashowResonanceAtomic  (void) const;
+  bool IsGlashowResonanceInel    (void) const;
+  bool IsGlashowResonanceCoh     (void) const;
   bool IsAMNuGamma               (void) const;
   bool IsMEC                     (void) const;
   bool IsDiffractive             (void) const;

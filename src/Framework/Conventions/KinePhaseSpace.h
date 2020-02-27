@@ -67,8 +67,10 @@ typedef enum EKinePhaseSpace {
   kPSTkTlctl,
   kPSTnctnBnctl, // Nucleon momentum, angle, binding energy, lepton com angle
   kPSQ2vfE,
-  kPSQELEvGen // Phase space used by genie::QELEventGenerator for sampling kinematic variables
+  kPSQELEvGen, // Phase space used by genie::QELEventGenerator for sampling kinematic variables
               // TODO: rename this value when the correct variables are identified
+  kPSGLx1x2fE,
+  kPSGLx1x2x3fE
 
 } KinePhaseSpace_t;
 
@@ -124,6 +126,8 @@ public:
       case(kPSQ2vfE)      : return "<{Q2,v}|E>"; break;
       // TODO: update this string when the appropriate kinematic variables are known
       case(kPSQELEvGen)   : return "<QELEvGen>"; break;
+      case(kPSGLx1x2fE)    : return "<{x1,x2}|E>"; break;
+      case(kPSGLx1x2x3fE)  : return "<{x1,x2,x3}|E>"; break;
     }
     return "** Undefined kinematic phase space **";
   }

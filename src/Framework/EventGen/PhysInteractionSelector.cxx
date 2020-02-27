@@ -133,7 +133,7 @@ EventRecord * PhysInteractionSelector::SelectInteraction
            const ProcessInfo & proc  = interaction->ProcInfo();
            // choose ref frame ('Lab' or 'Hit nucleon rest frame')
            RefFrame_t frame = 
-              (proc.IsCoherent() || proc.IsElectronScattering() || proc.IsGlashowResonance()) ? 
+              (proc.IsCoherent() || proc.IsElectronScattering() || proc.IsGlashowResonanceAtomic() || proc.IsGlashowResonanceInel() || proc.IsGlashowResonanceCoh()) ? 
               kRfLab : kRfHitNucRest;
            double E = init.ProbeE(frame);
            if(TMath::IsNaN(E)) {

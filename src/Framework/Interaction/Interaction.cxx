@@ -150,11 +150,8 @@ int Interaction::FSPrimLeptonPdg(void) const
     int clpdgc;
     if (proc_info.IsIMDAnnihilation())
       clpdgc = kPdgMuon;
-    else if (proc_info.IsGlashowResonance()) {
-      if      ( pdg::IsMuon(xclstag.FinalLeptonPdg())     ) clpdgc = kPdgMuon;
-      else if ( pdg::IsTau(xclstag.FinalLeptonPdg())      ) clpdgc = kPdgTau;
-      else if ( pdg::IsElectron(xclstag.FinalLeptonPdg()) ) clpdgc = kPdgElectron;
-      else if ( pdg::IsPion(xclstag.FinalLeptonPdg()) )     clpdgc = kPdgPiP;
+    else if (proc_info.IsGlashowResonanceAtomic() || proc_info.IsGlashowResonanceInel()) {
+      clpdgc = xclstag.FinalLeptonPdg();
     }
     else
       clpdgc = pdg::Neutrino2ChargedLepton(pdgc);
@@ -883,10 +880,10 @@ Interaction * Interaction::MECEM(
   return interaction;
 }
 //___________________________________________________________________________
-Interaction * Interaction::GLR(int tgt, double E)
+Interaction * Interaction::GLRAtom(int tgt, double E)
 {
   Interaction * interaction = 
-     Interaction::Create(tgt, kPdgAntiNuE, kScGlashowResonance, kIntWeakCC);
+     Interaction::Create(tgt, kPdgAntiNuE, kScGlashowResonanceAtomic, kIntWeakCC);
 
   InitialState * init_state = interaction->InitStatePtr();
   init_state->SetProbeE(E);
@@ -895,14 +892,62 @@ Interaction * Interaction::GLR(int tgt, double E)
   return interaction;
 }
 //___________________________________________________________________________
-Interaction * Interaction::GLR(int tgt, const TLorentzVector & p4probe)
+Interaction * Interaction::GLRAtom(int tgt, const TLorentzVector & p4probe)
 {
   Interaction * interaction = 
-     Interaction::Create(tgt, kPdgAntiNuE, kScGlashowResonance, kIntWeakCC);
+     Interaction::Create(tgt, kPdgAntiNuE, kScGlashowResonanceAtomic, kIntWeakCC);
 
   InitialState * init_state = interaction->InitStatePtr();
   init_state->SetProbeP4(p4probe);
   init_state->TgtPtr()->SetHitNucPdg(0);
+
+  return interaction;
+}
+//___________________________________________________________________________
+Interaction * Interaction::GLRInel(int tgt, int hitnuc, int probe, double E)
+{
+ 
+  Interaction * interaction = 
+     Interaction::Create(tgt, probe, kScGlashowResonanceInel, kIntWeakCC);
+
+  InitialState * init_state = interaction->InitStatePtr();
+  init_state->SetProbeE(E);
+  init_state->TgtPtr()->SetHitNucPdg(hitnuc);
+
+  return interaction;
+}
+//___________________________________________________________________________
+Interaction * Interaction::GLRInel(int tgt, int hitnuc, int probe, const TLorentzVector & p4probe)
+{
+  Interaction * interaction = 
+     Interaction::Create(tgt, probe, kScGlashowResonanceInel, kIntWeakCC);
+
+  InitialState * init_state = interaction->InitStatePtr();
+  init_state->SetProbeP4(p4probe);
+  init_state->TgtPtr()->SetHitNucPdg(hitnuc);
+
+  return interaction;
+}
+//___________________________________________________________________________
+Interaction * Interaction::GLRCoh(int tgt, int probe, double E)
+{
+ 
+  Interaction * interaction = 
+     Interaction::Create(tgt, probe, kScGlashowResonanceCoh, kIntWeakCC);
+
+  InitialState * init_state = interaction->InitStatePtr();
+  init_state->SetProbeE(E);
+
+  return interaction;
+}
+//___________________________________________________________________________
+Interaction * Interaction::GLRCoh(int tgt, int probe, const TLorentzVector & p4probe)
+{
+  Interaction * interaction = 
+     Interaction::Create(tgt, probe, kScGlashowResonanceCoh, kIntWeakCC);
+
+  InitialState * init_state = interaction->InitStatePtr();
+  init_state->SetProbeP4(p4probe);
 
   return interaction;
 }

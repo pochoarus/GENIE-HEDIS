@@ -26,6 +26,7 @@
 #include "Framework/Interaction/InteractionException.h"
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/ParticleData/PDGLibrary.h"
+#include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/Registry/Registry.h"
 #include "Framework/Utils/KineUtils.h"
 #include "Framework/Numerical/MathUtils.h"
@@ -176,8 +177,22 @@ double KPhaseSpace::Threshold(void) const
         return ml;
     }
   }
-  if(pi.IsGlashowResonance()) {
+  if(pi.IsGlashowResonanceAtomic()) {
     double Ethr = 0.5 * (ml*ml-kElectronMass2)/kElectronMass;
+    return TMath::Max(0.,Ethr);
+  }
+  if(pi.IsGlashowResonanceInel()) {
+    double Mn = tgt.HitNucP4Ptr()->M();
+    double Ethr = 0.5 * (ml*ml-TMath::Power(Mn,2))/Mn;
+    return TMath::Max(0.,Ethr);
+  }
+  if(pi.IsGlashowResonanceCoh()) {
+    double ml = 0;
+    if      (pdg::IsNuE  (TMath::Abs(init_state.ProbePdg()))) ml = kElectronMass;
+    else if (pdg::IsNuMu (TMath::Abs(init_state.ProbePdg()))) ml = kMuonMass;
+    else if (pdg::IsNuTau(TMath::Abs(init_state.ProbePdg()))) ml = kTauMass;
+    double MA = init_state.Tgt().Z()*kProtonMass + init_state.Tgt().N()*kNeutronMass;
+    double Ethr = 0.5 * (TMath::Power(kMw+ml,2)-TMath::Power(MA,2))/MA;
     return TMath::Max(0.,Ethr);
   }
 
@@ -235,7 +250,9 @@ bool KPhaseSpace::IsAboveThreshold(void) const
       pi.IsIMDAnnihilation() || 
       pi.IsNuElectronElastic() ||
       pi.IsMEC()            || 
-      pi.IsGlashowResonance()) 
+      pi.IsGlashowResonanceAtomic() || 
+      pi.IsGlashowResonanceInel() || 
+      pi.IsGlashowResonanceCoh()) 
   {
       E = init_state.ProbeE(kRfLab);
   }
@@ -305,7 +322,7 @@ bool KPhaseSpace::IsAllowed(void) const
   }
 
   //IMD
-  if(pi.IsInverseMuDecay() || pi.IsIMDAnnihilation() || pi.IsNuElectronElastic() || pi.IsGlashowResonance()) {
+  if(pi.IsInverseMuDecay() || pi.IsIMDAnnihilation() || pi.IsNuElectronElastic()) {
     Range1D_t yl = this->YLim();
     double    y  = kine.y();
     bool in_phys = math::IsWithinLimits(y, yl);
@@ -700,16 +717,6 @@ Range1D_t KPhaseSpace::YLim(void) const
     double ml = fInteraction->FSPrimLepton()->Mass();
     yl.min = kPionMass/Ev + controls::kASmallNum;
     yl.max = 1. -ml/Ev - controls::kASmallNum;
-    return yl;
-  }
-  // GLRES
-  if(pi.IsGlashowResonance()) {
-    const InitialState & init_state = fInteraction->InitState();
-    double Ev = init_state.ProbeE(kRfLab);
-    double ml = fInteraction->FSPrimLepton()->Mass();
-    double me = kElectronMass;
-    yl.min = (ml*ml+me*me)/2/Ev/me + controls::kASmallNum;
-    yl.max = (4*Ev*(Ev+me) + (ml*ml+me*me))/2/Ev/(me+2*Ev) - controls::kASmallNum;
     return yl;
   }
   return yl;

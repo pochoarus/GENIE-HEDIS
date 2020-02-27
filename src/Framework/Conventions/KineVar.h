@@ -39,6 +39,9 @@ typedef enum EKineVar {
   kKVTl,
   kKVctl,
   kKVphikq,
+  kKVGLx1,
+  kKVGLx2,
+  kKVGLx3,
   kKVSelx,
   kKVSely,
   kKVSelQ2,
@@ -79,6 +82,9 @@ public:
       case(kKVTl)      : return " *Running* lepton kinetic energy";      break;
       case(kKVctl)     : return " *Running* cosine of lepton theta";     break;
       case(kKVphikq)   : return " *Running* ASK phi kq";                 break;
+      case(kKVGLx1)    : return " *Running* GLRES x1 in CoM";            break;
+      case(kKVGLx2)    : return " *Running* GLRES x2 in CoM";            break;
+      case(kKVGLx3)    : return " *Running* GLRES x3 in CoM";            break;
       case(kKVSelx)    : return "*Selected* Bjorken x";                  break;
       case(kKVSely)    : return "*Selected* Inelasticity y";             break;
       case(kKVSelQ2)   : return "*Selected* Momentum transfer Q2 (>0)";  break;

@@ -39,6 +39,7 @@
    <config alg="genie::DMDISKinematicsGenerator">    DMDISKinematicsGenerator.xml    </config>
    <config alg="genie::HEDISKinematicsGenerator">    HEDISKinematicsGenerator.xml    </config>
    <config alg="genie::GLRESKinematicsGenerator">    GLRESKinematicsGenerator.xml    </config>
+   <config alg="genie::GLRESCohKinematicsGenerator"> GLRESKinematicsGenerator.xml    </config>
    <config alg="genie::QELHadronicSystemGenerator">  QELHadronicSystemGenerator.xml  </config>
    <config alg="genie::COHHadronicSystemGenerator">  COHHadronicSystemGenerator.xml  </config>
    <config alg="genie::COHElHadronicSystemGenerator">COHElHadronicSystemGenerator.xml</config>
@@ -52,6 +53,7 @@
    <config alg="genie::AMNuGammaGenerator">          AMNuGammaGenerator.xml          </config>
    <config alg="genie::MECGenerator">                MECGenerator.xml                </config>
    <config alg="genie::GLRESGenerator">              GLRESGenerator.xml              </config>
+   <config alg="genie::GLRESCohGenerator">           GLRESGenerator.xml              </config>
    <config alg="genie::HEDISGenerator">              HEDISGenerator.xml              </config>
    <config alg="genie::NucleonDecayPrimaryVtxGenerator"> NucleonDecayPrimaryVtxGenerator.xml </config>
    <config alg="genie::NNBarOscPrimaryVtxGenerator">     NNBarOscPrimaryVtxGenerator.xml     </config>
@@ -65,7 +67,9 @@
    <config alg="genie::COHInteractionListGenerator">           COHInteractionListGenerator.xml       </config>
    <config alg="genie::AMNuGammaInteractionListGenerator">     AMNuGammaInteractionListGenerator.xml </config>
    <config alg="genie::MECInteractionListGenerator">           MECInteractionListGenerator.xml       </config>
-   <config alg="genie::GLRESInteractionListGenerator">         GLRESInteractionListGenerator.xml     </config>
+   <config alg="genie::GLRESAtomicInteractionListGenerator">     GLRESAtomicInteractionListGenerator.xml    </config>
+   <config alg="genie::GLRESInelasticInteractionListGenerator">  GLRESInelasticInteractionListGenerator.xml </config>
+   <config alg="genie::GLRESCoherentInteractionListGenerator">   GLRESCoherentInteractionListGenerator.xml  </config>
    <config alg="genie::DFRInteractionListGenerator">           DFRInteractionListGenerator.xml       </config>
    <config alg="genie::SKInteractionListGenerator">            SKInteractionListGenerator.xml        </config>
    <config alg="genie::DMELInteractionListGenerator">          DMELInteractionListGenerator.xml      </config>
@@ -136,6 +140,7 @@
    <config alg="genie::DMELXSec">                    DMELXSec.xml                    </config>
    <config alg="genie::DMDISXSec">                   DMDISXSec.xml                   </config>
    <config alg="genie::GLRESXSec">                   GLRESXSec.xml                   </config>
+   <config alg="genie::GLRESCohXSec">                GLRESCohXSec.xml                </config>
    <config alg="genie::HEDISXSec">                   HEDISXSec.xml                   </config>
 
    <!--  ****** CONFIGURATION FOR XSEC ALGORITHMS ****** -->
@@ -159,7 +164,9 @@
    <config alg="genie::IMDAnnihilationPXSec">               IMDAnnihilationPXSec.xml               </config>
    <config alg="genie::COHElasticPXSec">                    COHElasticPXSec.xml                    </config>
    <config alg="genie::NuElectronPXSec">                    NuElectronPXSec.xml                    </config>
-   <config alg="genie::GLRESPXSec">                         GLRESPXSec.xml                         </config>
+   <config alg="genie::GLRESAtomicPXSec">                   GLRESAtomicPXSec.xml                   </config>
+   <config alg="genie::GLRESInelasticPXSec">                GLRESInelasticPXSec.xml                </config>
+   <config alg="genie::GLRESCoherentPXSec">                 GLRESCoherentPXSec.xml                 </config>
    <config alg="genie::BergerSehgalRESPXSec2014">           BergerSehgalRESPXSec2014.xml           </config>
    <config alg="genie::KuzminLyubushkinNaumovRESPXSec2014"> KuzminLyubushkinNaumovRESPXSec2014.xml </config>
    <config alg="genie::ReinDFRPXSec">                       ReinDFRPXSec.xml                       </config>
