@@ -195,7 +195,8 @@
   <priority msgstream="HEDISPXSec">            WARN </priority>
   <priority msgstream="HEDISStrucFunc">        INFO </priority>
   <priority msgstream="HEDISKinematics">       WARN </priority>
-  <priority msgstream="HEDISGenerator">        ERROR </priority>
+  <priority msgstream="HEDISGenerator">        WARN </priority>
+  <priority msgstream="LeptoHad">              WARN </priority>
   <priority msgstream="GLRESXSec">             WARN   </priority>
   <priority msgstream="GLRESCohXSec">          WARN  </priority>
   <priority msgstream="GLRESAtomicPXSec">      WARN   </priority>
