@@ -1,4 +1,3 @@
-#ifdef __GENIE_APFEL_ENABLED__
 
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/Conventions/Constants.h"
@@ -14,10 +13,11 @@
 #include <iostream>
 #include <fstream>
 
+#ifdef __GENIE_APFEL_ENABLED__
 #include "APFEL/APFEL.h"
-
 #include "LHAPDF/LHAPDF.h"
 LHAPDF::PDF* pdf;
+#endif
 
 using namespace std;
 
@@ -40,6 +40,7 @@ class PhotonConv: public ROOT::Math::IBaseFunctionOneDim
     double xmin,Qin;
 };
 
+#ifdef __GENIE_APFEL_ENABLED__
 // External functions accessed by apfel to parameterise xf(x0,Q0)
 extern "C" void externalsetapfellept_(double* x, double* q, int* irep, double* xf, double* xl) {
   if (*x >= 1 || *x < 0) {
@@ -77,6 +78,7 @@ extern "C" void externalsetapfellept_(double* x, double* q, int* irep, double* x
   }
   return;
 }
+#endif
 
 //____________________________________________________________________________
 int main(int argc, char ** argv)
@@ -87,6 +89,7 @@ int main(int argc, char ** argv)
   int nucs[2] = { kPdgProton, kPdgNeutron };
   int pdgs[6] = { kPdgNuE, kPdgAntiNuE, kPdgNuMu, kPdgAntiNuMu, kPdgNuTau, kPdgAntiNuTau };
   
+#ifdef __GENIE_APFEL_ENABLED__
   for (int k=0; k<2; k++) {
     
     fNucPdg = nucs[k];
@@ -162,9 +165,8 @@ int main(int argc, char ** argv)
     
 
   }
-
+#endif
 
 }
 
-#endif
 
