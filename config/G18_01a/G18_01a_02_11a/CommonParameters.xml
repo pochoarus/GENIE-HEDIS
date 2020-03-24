@@ -64,6 +64,7 @@ University of Liverpool
   -->
    <param type="double" name="NUCL-R0"> 1.4 </param>
    <param type="double" name="NUCL-NR"> 3.0 </param>
+   <param type="int"    name="VtxGenerationMethod">   1 </param>
 
  </param_set>
 
