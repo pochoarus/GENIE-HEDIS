@@ -26,6 +26,7 @@ using namespace genie::constants;
 
 int fNucPdg = 0;
 
+#ifdef __GENIE_APFEL_ENABLED__
 class PhotonConv: public ROOT::Math::IBaseFunctionOneDim
 {
   public:
@@ -40,7 +41,6 @@ class PhotonConv: public ROOT::Math::IBaseFunctionOneDim
     double xmin,Qin;
 };
 
-#ifdef __GENIE_APFEL_ENABLED__
 // External functions accessed by apfel to parameterise xf(x0,Q0)
 extern "C" void externalsetapfellept_(double* x, double* q, int* irep, double* xf, double* xl) {
   if (*x >= 1 || *x < 0) {
