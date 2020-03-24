@@ -1,3 +1,5 @@
+#ifdef __GENIE_APFEL_ENABLED__
+
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/Conventions/Constants.h"
 #include "Framework/ParticleData/PDGCodes.h"
@@ -163,3 +165,6 @@ int main(int argc, char ** argv)
 
 
 }
+
+#endif
+
