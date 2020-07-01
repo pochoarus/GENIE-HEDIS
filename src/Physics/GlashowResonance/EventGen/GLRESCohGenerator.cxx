@@ -179,13 +179,16 @@ void GLRESCohGenerator::ProcessEventRecord(GHepRecord * evrec) const
 
   int pdgboson = pdg::IsNeutrino(init_state.ProbePdg()) ? kPdgWP : kPdgWM;
 
-  double width = fPythia->GetPMAS(24,2);
-  fPythia->SetPMAS(24,2,0.); //set to 0 the width of the W boson to avoid problems with energy conservation
-  fPythia->Py1ent( -1, pdgboson, EW, acosl(costh), kPi/2. ); //k(1,2) = 2
-  fPythia->SetPMAS(24,2,width);
+  int def61  = fPythia->GetMSTP(61);  
+  int def71  = fPythia->GetMSTP(71); 
+  fPythia->SetMSTP(61,0);    // (Default=2) master switch for initial-state QCD and QED radiation.
+  fPythia->SetMSTP(71,0);    // (Default=2) master switch for initial-state QCD and QED radiation.
 
+  fPythia->Py1ent( -1, pdgboson, EW, acosl(costh), kPi/2. ); //k(1,2) = 2
   fPythia->Pyexec();
-  //fPythia->Pylist(3);
+
+  fPythia->SetMSTP(61,def61);
+  fPythia->SetMSTP(71,def71);
 
   fPythia->GetPrimaries();
   TClonesArray * pythia_particles = (TClonesArray *) fPythia->ImportParticles("All");
@@ -287,20 +290,14 @@ void GLRESCohGenerator::LoadConfig(void)
   int warnings;       GetParam( "Warnings",      warnings ) ;
   int errors;         GetParam( "Errors",        errors ) ;
   int qrk_mass;       GetParam( "QuarkMass",     qrk_mass ) ;
-  int decaycut;       GetParam( "DecayCutOff",   decaycut ) ;
-  double decaylength; GetParam( "DecayLength",   decaylength ) ;
   fPythia->SetPARP(2,  wmin);         //(D = 10. GeV) lowest c.m. energy for the event as a whole that the program will accept to simulate. (bellow 2GeV pythia crashes)
   fPythia->SetMSTU(26, warnings);     // (Default=10) maximum number of warnings that are printed
   fPythia->SetMSTU(22, errors);       // (Default=10) maximum number of errors that are printed
   fPythia->SetMSTJ(93, qrk_mass);     // light (d, u, s, c, b) quark masses are taken from PARF(101) - PARF(105) rather than PMAS(1,1) - PMAS(5,1). Diquark masses are given as sum of quark masses, without spin splitting term.
-  fPythia->SetMSTJ(22, decaycut);     // (Default=1) cut-off on decay length for a particle that is allowed to decay according to MSTJ(21) and the MDCY value
-  fPythia->SetPARJ(71, decaylength);  // (Default=10. mm) maximum average proper lifetime cτ for particles allowed to decay
 
-  fPythia->SetMDME(192,1,0);          //swicht off W decay to top
-  fPythia->SetMDME(196,1,0); 
-  fPythia->SetMDME(200,1,0); 
-
-  fPythia->SetPMAS(24,1,kMw); //mass of the W boson (pythia=80.450 // genie=80.385)
+  fPythia->SetPMAS(24,1,kMw);  //mass of the W boson (pythia=80.450 // genie=80.385)
+  fPythia->SetPMAS(24,2,0.);   //set to 0 the width of the W boson to avoid problems with energy conservation
+  fPythia->SetPMAS(6,2,0.);    //set to 0 the width of the top to avoid problems with energy conservation
 
   GetParam( "GLRESCoh-Is-EPA",    fIsEPA );
 
