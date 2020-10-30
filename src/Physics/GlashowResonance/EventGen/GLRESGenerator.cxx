@@ -92,7 +92,7 @@ void GLRESGenerator::ProcessEventRecord(GHepRecord * evrec) const
   else if ( proc_info.IsGlashowResonanceInel()   ) el = evrec->HitNucleon();
 
   GHepParticle * target = evrec -> TargetNucleus();
-  if(target) evrec->AddParticle(target->Pdg(), kIStStableFinalState, 1,-1,-1,-1, *(target->P4()), *(target->X4()) );
+  if(target) evrec->AddParticle(target->Pdg(), kIStFinalStateNuclearRemnant, 1,-1,-1,-1, *(target->P4()), *(target->X4()) );
 
   LongLorentzVector p4_nu (nu->P4());
   LongLorentzVector p4_el (el->P4());

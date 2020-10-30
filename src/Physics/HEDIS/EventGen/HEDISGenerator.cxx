@@ -65,6 +65,7 @@ void HEDISGenerator::ProcessEventRecord(GHepRecord * evrec) const
 
   //-- Add the target remnant
   this->AddTargetNucleusRemnant(evrec);
+  evrec->Particle(evrec->RemnantNucleusPosition())->SetStatus(kIStFinalStateNuclearRemnant);
 
   //-- Add the primary lepton
   this->AddPrimaryLepton(evrec);

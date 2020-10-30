@@ -87,7 +87,7 @@ void GLRESCohGenerator::ProcessEventRecord(GHepRecord * evrec) const
   GHepParticle * nu = evrec->Probe();
 
   GHepParticle * target = evrec -> TargetNucleus();
-  if(target) evrec->AddParticle(target->Pdg(), kIStStableFinalState, 1,-1,-1,-1, *(target->P4()), *(target->X4()) );
+  if(target) evrec->AddParticle(target->Pdg(), kIStFinalStateNuclearRemnant, 1,-1,-1,-1, *(target->P4()), *(target->X4()) );
 
   LongLorentzVector p4_nu (nu->P4());
 
