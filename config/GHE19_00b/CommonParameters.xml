@@ -10,7 +10,7 @@
     <param type="int"    name="HEDIS-Quark-Threshold">                             1 </param>
     <param type="int"    name="HEDIS-NGridX">                                    400 </param>
     <param type="int"    name="HEDIS-NGridQ2">                                   400 </param>
-    <param type="double" name="HEDIS-XGrid-Min">                                1e-6 </param>
+    <param type="double" name="HEDIS-XGrid-Min">                                1e-8 </param>
     <param type="double" name="HEDIS-Q2Grid-Min">                                 1. </param>
     <param type="double" name="HEDIS-Q2Grid-Max">                                1e9 </param>
     <param type="double" name="HEDIS-MassW">                                  80.398 </param>

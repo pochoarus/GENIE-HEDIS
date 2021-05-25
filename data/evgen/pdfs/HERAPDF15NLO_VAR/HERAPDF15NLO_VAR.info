@@ -23,7 +23,7 @@ OrderQCD: 1
 FlavorScheme: variable
 NumFlavors: 5
 ErrorType: custom
-XMin: 1e-06
+XMin: 1e-08
 XMax: 1
 QMin: 1
 QMax: 31622.8

@@ -1,32 +1,32 @@
-# LHAPDF set
+#LHAPDFset
 HERAPDF15NLO_EIG
-# LHAPDF member
+#LHAPDFmember
 0
-# NLO
+#IsNLO
 1
-# Mass Scheme
+#Scheme
 CSMS
-# Quark threshold
+#QrkThrs
 1
-# NX
+#NGridX
 400
-# NQ2
+#NGridQ2
 400
-# Xmin
-1e-06
-# Q2min
+#XGridMin
+1e-08
+#Q2GridMin
 1
-# Q2max
+#Q2GridMax
 1e+09
-# Mass W
+#MassW
 80.398
-# Mass Z
+#MassZ
 91.1876
-# Rho
+#Rho
 0
-# Sin2ThW
+#Sin2ThW
 0.22308
-# CKM
+#CKM
 0.97467
 0.22361
 0

@@ -125,7 +125,7 @@ double HEDISXSec::Integrate(
   // If a GSL option has been chosen, then the total xsec is recomptued
   ROOT::Math::IBaseFunctionMultiDim * func = new utils::gsl::d2XSec_dlog10xdlog10Q2_E(model, interaction);
   ROOT::Math::IntegrationMultiDim::Type ig_type = utils::gsl::IntegrationNDimTypeFromString(fGSLIntgType);
-  double abstol = 1; //We mostly care about relative tolerance.
+  double abstol = 0; //We care about relative tolerance.
   ROOT::Math::IntegratorMultiDim ig(*func, ig_type, abstol, fGSLRelTol, fGSLMaxEval);
   double kine_min[2] = { TMath::Log10(xl.min), TMath::Log10(Q2l.min) };
   double kine_max[2] = {TMath::Log10(xl.max), TMath::Log10(Q2l.max) };
