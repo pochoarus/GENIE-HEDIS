@@ -1,0 +1,30 @@
+SetDesc: "HERAPDF15 NLO variations of fit parameters.
+ The first 8 variations are considered as model errors and should be treated one by one,
+ by taking the difference between the variation and the central value,
+ and then adding in quadrature all positive (negative) differences to obtain the positive (negative) model error.
+ Variations 9 to 12 are the maximal parametrisation variations;
+ the largest positive (negative) difference between the variation and the central value is taken
+ as the positive (negative) parametrisation error and added in quadrature
+ to the model errors to form the parametrisation envelope.
+ mem=0 => central (fs=0.31,fc=0.0,mb=4.75,mc=1.40,q20=1.9,q2min=1.9,a_s(MZ)=0.1176);
+ mem=1 => fs=23; mem=2 => fs=38; mem=7 => q2cut25; mem8 => q2cut5;
+ mem=5 => mc135 (Q0 1.8); mem=6 -> mc165; mem=3 => mb43; mem=4;
+ mem=9 => par1(Q0 1.5 neg glu); mem=10 => par2 (Q0 2.5, mc 1.6);
+ mem=11 => par3(EuvDuv); mem=12 => par4 (EuvDubar)"
+SetIndex: 60730
+Authors: H1 and ZEUS Collaborations
+Reference: 
+Format: lhagrid1
+DataVersion: 1
+NumMembers: 13
+Particle: 2212
+Flavors: [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 21]
+OrderQCD: 1
+FlavorScheme: variable
+NumFlavors: 5
+ErrorType: custom
+XMin: 1e-06
+XMax: 1
+QMin: 1
+QMax: 31622.8
+MZ: 91.1876

@@ -178,6 +178,7 @@ double genie::utils::kinematics::Jacobian(
   {
     J = 1. / (kine.x() * kine.y());
   }
+
   //
   // transformation: {log10x,log10Q2}|E -> {x,Q2}|E
   //
@@ -194,6 +195,19 @@ double genie::utils::kinematics::Jacobian(
   if ( TransformMatched(fromps,tops,kPSQ2yfE,kPSlogQ2logyfE,forward) )
   {
     J = 1. / (kine.Q2() * kine.y());
+  }
+
+  //
+  // transformation: {x,y}|E -> {x,Q2}|E
+  //
+  else
+  if ( TransformMatched(fromps,tops,kPSxQ2fE,kPSxyfE,forward) )
+  {
+    const InitialState & init_state = i->InitState();
+    double Ev = init_state.ProbeE(kRfHitNucRest);
+    double M  = init_state.Tgt().HitNucP4Ptr()->M();
+    double x  = kine.x();
+    J = 2*x*M*Ev;
   }
 
   //

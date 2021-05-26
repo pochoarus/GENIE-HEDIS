@@ -18,20 +18,21 @@ GENIE_LIBS  = $(shell $(GENIE)/src/scripts/setup/genie-config --libs)
 # first, and each stage must fully resolved before the next library
 LIBRARIES  := $(LIBRARIES) $(CERN_LIBRARIES) $(GENIE_LIBS)
 
-TGT_BASE =  gevgen          \
-            gevgen_hadron   \
-            gevdump         \
-            gevpick         \
-            gevscan         \
-            gevcomp         \
-            gxscomp         \
-            gmkspl          \
-            gspladd         \
-            gspl2root       \
-            gntpc           \
-            gpdfcomp        \
-            gsfcomp         \
-            gmkglressf       \
+TGT_BASE =  gevgen             \
+            gevgen_hadron      \
+            gevdump            \
+            gevpick            \
+            gevscan            \
+            gevcomp            \
+            gxscomp            \
+            gmkspl             \
+            gspladd            \
+            gspl2root          \
+            gntpc              \
+            gpdfcomp           \
+            gsfcomp            \
+            gcalchedisdiffxsec \
+            gmkglressf         \
             gmkhedissf
 
 ifeq ($(strip $(GOPT_ENABLE_FNAL)),YES)
@@ -236,6 +237,12 @@ $(GENIE_BIN_PATH)/gpdfcomp: gPDFComp.o $(call find_libs,gpdfcomp)
 $(GENIE_BIN_PATH)/gsfcomp: gSFComp.o $(call find_libs,gsfcomp)
 	@echo "** Building gsfcomp"
 	$(LD) $(LDFLAGS) gSFComp.o $(LIBRARIES) -o $(GENIE_BIN_PATH)/gsfcomp
+
+# App to calculate differential cross sections from HEDIS
+#
+$(GENIE_BIN_PATH)/gcalchedisdiffxsec: gCalcHEDISDiffXsec.o $(call find_libs,gcalchedisdiffxsec)
+	@echo "** Building gcalchedisdiffxsec"
+	$(LD) $(LDFLAGS) gCalcHEDISDiffXsec.o $(LIBRARIES) -o $(GENIE_BIN_PATH)/gcalchedisdiffxsec
 
 # App to create structure functions suitable for HEDIS
 #
